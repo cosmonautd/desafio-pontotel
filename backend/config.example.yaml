@@ -1,0 +1,6 @@
+# Este é um exemplo de arquivo de configuração. Para utilizá-lo, configure as variáveis 
+# marcadas com o comentário # placeholder e renomeie o arquivo para config.yaml.
+
+alphavantage_api_key: API_KEY # placeholder
+ibm: IBM
+bovespa: BOVB11.SAO

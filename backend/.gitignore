@@ -1,0 +1,7 @@
+# Python
+__pycache
+.venv*
+*.pyc
+
+# Configuração do projeto
+config.yaml
