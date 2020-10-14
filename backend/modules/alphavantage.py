@@ -45,9 +45,11 @@ class AlphaVantage:
 		"""
 
 		params = {
-			'apikey': self.api_key,
 			'function': 'TIME_SERIES_DAILY',
 			'symbol': symbol,
+			'outputsize': 'compact',
+			'datatype': 'json',
+			'apikey': self.api_key,
 		}
 
 		response = requests.get(ALPHAVANTAGE_URI, params=params)
@@ -59,6 +61,112 @@ class AlphaVantage:
 
 		return data, metadata
 	
+
+	def get_time_series_daily_adjusted(self, symbol):
+		"""
+		"""
+
+		params = {
+			'function': 'TIME_SERIES_DAILY_ADJUSTED',
+			'symbol': symbol,
+			'outputsize': 'compact',
+			'datatype': 'json',
+			'apikey': self.api_key
+		}
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		data = response.json()['Time Series (Daily)']
+		metadata = response.json()['Meta Data']
+
+		data = self.__remove_prefix__(data)
+		data = self.__transform_number__(data)
+
+		return data, metadata
+	
+
+	def get_time_series_weekly(self, symbol):
+		"""
+		"""
+
+		params = {
+			'function': 'TIME_SERIES_WEEKLY',
+			'symbol': symbol,
+			'datatype': 'json',
+			'apikey': self.api_key,
+		}
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		data = response.json()['Weekly Time Series']
+		metadata = response.json()['Meta Data']
+
+		data = self.__remove_prefix__(data)
+		data = self.__transform_number__(data)
+
+		return data, metadata
+	
+
+	def get_time_series_weekly_adjusted(self, symbol):
+		"""
+		"""
+
+		params = {
+			'function': 'TIME_SERIES_WEEKLY_ADJUSTED',
+			'symbol': symbol,
+			'datatype': 'json',
+			'apikey': self.api_key
+		}
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		data = response.json()['Weekly Adjusted Time Series']
+		metadata = response.json()['Meta Data']
+
+		data = self.__remove_prefix__(data)
+		data = self.__transform_number__(data)
+
+		return data, metadata
+	
+
+	def get_time_series_monthly(self, symbol):
+		"""
+		"""
+
+		params = {
+			'function': 'TIME_SERIES_MONTHLY',
+			'symbol': symbol,
+			'datatype': 'json',
+			'apikey': self.api_key,
+		}
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		data = response.json()['Monthly Time Series']
+		metadata = response.json()['Meta Data']
+
+		data = self.__remove_prefix__(data)
+		data = self.__transform_number__(data)
+
+		return data, metadata
+	
+
+	def get_time_series_monthly_adjusted(self, symbol):
+		"""
+		"""
+
+		params = {
+			'function': 'TIME_SERIES_MONTHLY_ADJUSTED',
+			'symbol': symbol,
+			'datatype': 'json',
+			'apikey': self.api_key
+		}
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		data = response.json()['Monthly Adjusted Time Series']
+		metadata = response.json()['Meta Data']
+
+		data = self.__remove_prefix__(data)
+		data = self.__transform_number__(data)
+
+		return data, metadata
+
 
 	def get_time_series_intraday(self, symbol, interval='5min'):
 		"""
@@ -76,22 +184,6 @@ class AlphaVantage:
 
 		response = requests.get(ALPHAVANTAGE_URI, params=params)
 		data = response.json()['Time Series (%s)' % (interval)]
-		metadata = response.json()['Meta Data']
-
-		return data, metadata
-
-	def get_time_series_daily_adjusted(self, symbol):
-		"""
-		"""
-
-		params = {
-			'apikey': self.api_key,
-			'function': 'TIME_SERIES_DAILY_ADJUSTED',
-			'symbol': symbol,
-		}
-
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Time Series (Daily)']
 		metadata = response.json()['Meta Data']
 
 		return data, metadata

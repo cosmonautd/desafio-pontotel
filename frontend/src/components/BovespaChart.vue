@@ -1,7 +1,9 @@
 <template>
 <div class="small">
 	<line-chart class="padding30" :chart-data="datacollection"></line-chart>
-	<button class="round-corners" @click="fill_data()">Randomize</button>
+	<button class="round-corners" @click="get_data('daily')">Diário</button>
+	<button class="round-corners" @click="get_data('weekly')">Semanal</button>
+	<button class="round-corners" @click="get_data('monthly')">Mensal</button>
 </div>
 </template>
 
@@ -35,22 +37,25 @@ export default {
 	methods: {
 		fill_data () {
 			this.datacollection = {
-			labels: this.labels,
-			datasets: [
-				{
-					label: 'Índice Bovespa',
-					data: this.datapoints
-				}
-			]
+				labels: this.labels,
+				datasets: [
+					{
+						label: 'Índice Bovespa',
+						data: this.datapoints
+					}
+				]
 			}
+		},
+		get_data (period) {
+			this.axios.get(`http://localhost:8000/bovespa/${period}`)
+			.then((response) => {
+				this.bovespa_data = response.data.data
+				this.fill_data()
+			})
 		}
 	},
 	mounted() {
-		this.axios.get('http://localhost:8000/bovespa/daily')
-		.then((response) => {
-			this.bovespa_data = response.data.data
-			this.fill_data()
-		})
+		this.get_data('daily')
 	},
 }
 </script>

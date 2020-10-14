@@ -34,20 +34,25 @@ async def bovespa(period: Period):
 	"""
 	"""
 
+	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
+
 	if period == Period.daily:
 
-		alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
 		data, metadata = alpha.get_time_series_daily(symbol=config.get()['bovespa'])
 
 		return {'success': True, 'period': 'daily', 'data': data, 'metadata': metadata}
 
 	elif period == Period. weekly:
 
-		return {'success': True, 'period': 'weekly'}
+		data, metadata = alpha.get_time_series_weekly(symbol=config.get()['bovespa'])
+
+		return {'success': True, 'period': 'weekly', 'data': data, 'metadata': metadata}
 
 	elif period == Period.monthly:
 
-		return {'success': True, 'period': 'monthly'}
+		data, metadata = alpha.get_time_series_monthly(symbol=config.get()['bovespa'])
+
+		return {'success': True, 'period': 'monthly', 'data': data, 'metadata': metadata}
 	
 	else:
 
