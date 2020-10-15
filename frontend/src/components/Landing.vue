@@ -7,11 +7,7 @@
 		<BovespaChart/>
 		<div class="vertical-spacing-2"></div>
 		<h1 class="bovespa-title">empresas</h1>
-		<div v-if="companies.length > 0">
-			<CompanyList
-				:companies="companies"
-			/>
-		</div>
+		<CompanyList/>
 		<button class="round-corners" @click="about">
 			sobre
 		</button>
@@ -28,17 +24,6 @@ export default {
 	components: {
 		BovespaChart,
 		CompanyList
-	},
-	data() {
-		return {
-			companies: [
-				{
-					id: 1,
-					name: 'Ambev',
-					ticker: 'ABEV'
-				}
-			]
-		}
 	},
 	methods: {
 		about() {

@@ -3,9 +3,11 @@ import enum
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
 from modules import config
 from modules import alphavantage
+
+from database import db
+from database import models
 
 app = FastAPI()
 
@@ -40,20 +42,60 @@ async def bovespa(period: Period):
 
 		data, metadata = alpha.get_time_series_daily(symbol=config.get()['bovespa'])
 
-		return {'success': True, 'period': 'daily', 'data': data, 'metadata': metadata}
+		return {
+			'success': True,
+			'period': 'daily',
+			'data': data, 
+			'metadata': metadata
+		}
 
 	elif period == Period. weekly:
 
 		data, metadata = alpha.get_time_series_weekly(symbol=config.get()['bovespa'])
 
-		return {'success': True, 'period': 'weekly', 'data': data, 'metadata': metadata}
+		return {
+			'success': True,
+			'period': 'weekly',
+			'data': data,
+			'metadata': metadata
+		}
 
 	elif period == Period.monthly:
 
 		data, metadata = alpha.get_time_series_monthly(symbol=config.get()['bovespa'])
 
-		return {'success': True, 'period': 'monthly', 'data': data, 'metadata': metadata}
+		return {
+			'success': True,
+			'period': 'monthly',
+			'data': data,
+			'metadata': metadata
+		}
 	
 	else:
 
-		return {'success': False}
+		return {
+			'success': False
+		}
+
+
+@app.get('/companies')
+async def list_companies():
+	"""
+	"""
+
+	with db.transaction() as session:
+		query = session.query(models.Company)
+		companies = [db.serialize(q) for q in query.all()]
+
+	return {'success': True, 'companies': companies}
+
+
+@app.get('/search/{keywords}')
+async def search(keywords: str):
+	"""
+	"""
+
+	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
+	result = alpha.search(keywords=keywords)
+
+	return {'success': True, 'result': result}

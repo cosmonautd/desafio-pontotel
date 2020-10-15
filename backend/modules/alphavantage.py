@@ -13,7 +13,7 @@ class AlphaVantage:
 		self.api_key = api_key
 	
 
-	def __remove_prefix__(self, data):
+	def __remove_prefix_timeseries__(self, data):
 		"""
 		"""
 
@@ -39,6 +39,25 @@ class AlphaVantage:
 					data[date][variable] = float(data[date][variable])
 
 		return data
+	
+
+	def __remove_prefix_search__(self, array):
+		"""
+		"""
+
+		for data in array:
+			data['symbol'] = data.pop('1. symbol', 0)
+			data['name'] = data.pop('2. name', 0)
+			data['type'] = data.pop('3. type', 0)
+			data['region'] = data.pop('4. region', 0)
+			data['marketOpen'] = data.pop('5. marketOpen', 0)
+			data['marketClose'] = data.pop('6. marketClose', 0)
+			data['timezone'] = data.pop('7. timezone', 0)
+			data['currency'] = data.pop('8. currency', 0)
+			data['matchScore'] = data.pop('9. matchScore', 0)
+
+		return array
+
 
 	def get_time_series_daily(self, symbol):
 		"""
@@ -56,7 +75,7 @@ class AlphaVantage:
 		data = response.json()['Time Series (Daily)']
 		metadata = response.json()['Meta Data']
 
-		data = self.__remove_prefix__(data)
+		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
 
 		return data, metadata
@@ -78,7 +97,7 @@ class AlphaVantage:
 		data = response.json()['Time Series (Daily)']
 		metadata = response.json()['Meta Data']
 
-		data = self.__remove_prefix__(data)
+		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
 
 		return data, metadata
@@ -99,7 +118,7 @@ class AlphaVantage:
 		data = response.json()['Weekly Time Series']
 		metadata = response.json()['Meta Data']
 
-		data = self.__remove_prefix__(data)
+		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
 
 		return data, metadata
@@ -120,7 +139,7 @@ class AlphaVantage:
 		data = response.json()['Weekly Adjusted Time Series']
 		metadata = response.json()['Meta Data']
 
-		data = self.__remove_prefix__(data)
+		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
 
 		return data, metadata
@@ -141,7 +160,7 @@ class AlphaVantage:
 		data = response.json()['Monthly Time Series']
 		metadata = response.json()['Meta Data']
 
-		data = self.__remove_prefix__(data)
+		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
 
 		return data, metadata
@@ -162,7 +181,7 @@ class AlphaVantage:
 		data = response.json()['Monthly Adjusted Time Series']
 		metadata = response.json()['Meta Data']
 
-		data = self.__remove_prefix__(data)
+		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
 
 		return data, metadata
@@ -176,10 +195,10 @@ class AlphaVantage:
 		# outros valores de symbol, como IBM, tudo funciona normalmente.
 
 		params = {
-			'apikey': self.api_key,
 			'function': 'TIME_SERIES_INTRADAY',
 			'symbol': symbol,
-			'interval': interval
+			'interval': interval,
+			'apikey': self.api_key,
 		}
 
 		response = requests.get(ALPHAVANTAGE_URI, params=params)
@@ -187,15 +206,21 @@ class AlphaVantage:
 		metadata = response.json()['Meta Data']
 
 		return data, metadata
+	
+	def search(self, keywords):
+		"""
+		"""
 
+		params = {
+			'function': 'SYMBOL_SEARCH',
+			'keywords': keywords,
+			'datatype': 'json',
+			'apikey': self.api_key,
+		}
 
-if __name__ == '__main__':
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		data = response.json()['bestMatches']
 
-	alpha = AlphaVantage(api_key=config.get()['alphavantage_api_key'])
+		data = self.__remove_prefix_search__(data)
 
-	ibm = config.get()['ibm']
-	bovespa = config.get()['bovespa']
-
-	data_daily_adjusted, _ = alpha.get_time_series_daily_adjusted(bovespa)
-
-	print(data_daily_adjusted)
+		return data

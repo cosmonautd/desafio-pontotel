@@ -2,3 +2,6 @@ fastapi
 uvicorn
 requests
 pyyaml
+sqlalchemy
+psycopg2
+alembic

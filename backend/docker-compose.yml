@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  # Postgres
+  postgres:
+    image: postgres:13.0-alpine
+    container_name: bovespa-empresas-database
+    # ports:
+    #   - "15432:5432"
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=PLACEHOLDER_PASSWORD
+  # Backend Bovespa/Empresas
+  app:
+    container_name: bovespa-empresas-backend
+    build: "."
+    restart: always
+    volumes:
+      - ".:/backend"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
