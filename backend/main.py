@@ -99,3 +99,50 @@ async def search(keywords: str):
 	result = alpha.search(keywords=keywords)
 
 	return {'success': True, 'result': result}
+
+
+@app.get('/company/{symbol}/{period}')
+async def company(symbol: str, period: Period):
+	"""
+	"""
+
+	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
+
+	if period == Period.daily:
+
+		data, metadata = alpha.get_time_series_daily(symbol=symbol)
+
+		return {
+			'success': True,
+			'period': 'daily',
+			'data': data, 
+			'metadata': metadata
+		}
+
+	elif period == Period. weekly:
+
+		data, metadata = alpha.get_time_series_weekly(symbol=symbol)
+
+		return {
+			'success': True,
+			'period': 'weekly',
+			'data': data,
+			'metadata': metadata
+		}
+
+	elif period == Period.monthly:
+
+		data, metadata = alpha.get_time_series_monthly(symbol=symbol)
+
+		return {
+			'success': True,
+			'period': 'monthly',
+			'data': data,
+			'metadata': metadata
+		}
+	
+	else:
+
+		return {
+			'success': False
+		}

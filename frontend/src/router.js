@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 import Landing from './components/Landing.vue'
+import Companies from './components/Companies.vue'
+import CompanyInfo from './components/CompanyInfo.vue'
 import About from './components/About.vue'
 
 Vue.use(Router)
@@ -12,6 +14,16 @@ export default new Router({
 			path: '/',
 			name: 'landing',
 			component: Landing
+		},
+		{
+			path: '/companies',
+			name: 'companies',
+			component: Companies
+		},
+		{
+			path: '/companies/info/:symbol',
+			name: 'company_info',
+			component: CompanyInfo
 		},
 		{
 			path: '/about',

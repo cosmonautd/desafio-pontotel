@@ -1,16 +1,48 @@
 <template>
 <div id="app" :class="this.$vssWidth >= 992 ? 'medium-container' : ''">
 	<router-view/>
+	<sidebar-menu :menu="menu" collapsed=true hideToggle=true />
 </div>
 </template>
 
 <script>
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import VueScreenSize from 'vue-screen-size'
+import { SidebarMenu } from 'vue-sidebar-menu'
 export default {
 	name: "App",
 	mixins: [VueScreenSize.VueScreenSizeMixin],
+	components: {
+		SidebarMenu
+	},
+	data () {
+		return {
+			menu: [
+				{
+					header: true,
+					title: 'Main Navigation',
+					hiddenOnCollapse: true
+				},
+				{
+					href: '/',
+					title: 'Bovespa',
+					icon: 'fa fa-user'
+				},
+				{
+					href: '/companies',
+					title: 'Empresas',
+					icon: 'fa fa-user'
+				},
+				{
+					href: '/about',
+					title: 'Sobre',
+					icon: 'fa fa-chart-area'
+				}
+			]
+		}
+	},
 }
 </script>
 

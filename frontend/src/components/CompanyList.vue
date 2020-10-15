@@ -9,7 +9,7 @@
 				<td style="width:60%" class="left-round-corners">{{ company.name }}</td>
 				<td>{{ company.symbol }}</td>
 				<td class="right-round-corners">
-					<button @click="companyDetails(company.id)" class="round-corners">
+					<button @click="companyDetails(company.symbol)" class="round-corners">
 						Detalhes
 					</button>
 				</td>
@@ -28,9 +28,9 @@ export default {
 		}
 	},
 	methods: {
-		companyDetails(id) {
-			// this.$router.push({ name: 'details', params: {companyId: id}});
-			console.log(id)
+		companyDetails(symbol) {
+			this.$router.push({name: 'company_info', params: {symbol}});
+			console.log(symbol)
 		},
 		get_companies () {
 			this.axios.get(`http://localhost:8000/companies`)
