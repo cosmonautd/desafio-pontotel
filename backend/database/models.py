@@ -31,11 +31,13 @@ class Price(Base):
 
 	id = Column(Integer, primary_key=True, index=True)
 	open = Column(Float)
-	close = Column(Float)
 	high = Column(Float)
 	low = Column(Float)
+	price = Column(Float)
 	volume = Column(Integer)
-	period = Column(Enum("intraday", "daily", "weekly", 'monthly', name='period_enum'))
-	time = Column(String)
+	latest_trading_day = Column(String)
+	previous_close = Column(Float)
+	change = Column(Float)
+	change_percent = Column(Float)
 
 	company_id = Column(Integer, ForeignKey('companies.id'))

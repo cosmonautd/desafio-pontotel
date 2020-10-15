@@ -21,12 +21,14 @@ def upgrade():
 		'prices',
 		sa.Column('id', sa.Integer, primary_key=True, index=True),
 		sa.Column('open', sa.Float),
-		sa.Column('close', sa.Float),
 		sa.Column('high', sa.Float),
 		sa.Column('low', sa.Float),
+		sa.Column('price', sa.Float),
 		sa.Column('volume', sa.Integer),
-		sa.Column('period', sa.Enum("intraday", "daily", "weekly", 'monthly', name='period_enum')),
-		sa.Column('time', sa.String),
+		sa.Column('latest_trading_day', sa.String),
+		sa.Column('previous_close', sa.Float),
+		sa.Column('change', sa.Float),
+		sa.Column('change_percent', sa.Float),
 		sa.Column('company_id', sa.Integer, sa.ForeignKey('companies.id'))
 	)
 

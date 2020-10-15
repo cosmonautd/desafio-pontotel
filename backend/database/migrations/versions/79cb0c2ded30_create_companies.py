@@ -59,10 +59,9 @@ def upgrade():
 	print('Iniciando população do BD...')
 
 	for s in symbols:
-		print('Buscando %s...' % (s))
+		print('Adicionando %s...' % (s))
 		result = alpha.search(keywords=s)
 		company = result[0]
-		print('Empresa encontrada: %s' % (s))
 		companies.append({
 			'symbol': s,
 			'name': company['name'],
