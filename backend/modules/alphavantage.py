@@ -64,7 +64,25 @@ class AlphaVantage:
 		return array
 	
 
-	def __get_from_cache__(self, key, refresh_interval):
+	def __remove_prefix_quote__(self, data):
+		"""
+		"""
+
+		data['symbol'] = data.pop('01. symbol', 0)
+		data['open'] = data.pop('02. open', 0)
+		data['high'] = data.pop('03. high', 0)
+		data['low'] = data.pop('04. low', 0)
+		data['price'] = data.pop('05. price', 0)
+		data['volume'] = data.pop('06. volume', 0)
+		data['latest trading day'] = data.pop('07. latest trading day', 0)
+		data['previous close'] = data.pop('08. previous close', 0)
+		data['change'] = data.pop('09. change', 0)
+		data['change percent'] = data.pop('10. change percent', 0)
+
+		return data
+	
+
+	def __get_from_cache__(self, key, refresh):
 		"""
 		"""
 
@@ -75,7 +93,7 @@ class AlphaVantage:
 		else:
 			entry = json.loads(entry)
 			timestamp = entry['timestamp']
-			if time.time() - timestamp > refresh_interval:
+			if time.time() - timestamp > refresh:
 				return None
 			else:
 				return entry['value']
@@ -90,7 +108,8 @@ class AlphaVantage:
 		self.cache.set(key, entry)
 	
 
-	def __get_time_series_generic__(self, function, symbol, datafield, refresh_interval):
+	def __get_time_series_generic__(self, function, symbol, datafield, refresh,
+		interval='1min'):
 		"""
 		"""
 
@@ -100,9 +119,13 @@ class AlphaVantage:
 			'apikey': self.api_key,
 		}
 
-		q = '%s-%s' % (symbol, function)
+		if function == 'TIME_SERIES_INTRADAY':
+			params['interval'] = interval
+			q = '%s-%s-%s' % (symbol, function, interval)
+		else:
+			q = '%s-%s' % (symbol, function)
 
-		response_json = self.__get_from_cache__(q, refresh_interval)
+		response_json = self.__get_from_cache__(q, refresh)
 
 		if response_json == None:
 
@@ -136,7 +159,7 @@ class AlphaVantage:
 			function='TIME_SERIES_DAILY',
 			symbol=symbol,
 			datafield='Time Series (Daily)',
-			refresh_interval=3600
+			refresh=3600
 		)
 
 
@@ -148,7 +171,7 @@ class AlphaVantage:
 			function='TIME_SERIES_DAILY_ADJUSTED',
 			symbol=symbol,
 			datafield='Time Series (Daily)',
-			refresh_interval=3600
+			refresh=3600
 		)
 	
 
@@ -160,7 +183,7 @@ class AlphaVantage:
 			function='TIME_SERIES_WEEKLY',
 			symbol=symbol,
 			datafield='Weekly Time Series',
-			refresh_interval=12*3600
+			refresh=12*3600
 		)
 	
 
@@ -172,7 +195,7 @@ class AlphaVantage:
 			function='TIME_SERIES_WEEKLY_ADJUSTED',
 			symbol=symbol,
 			datafield='Weekly Adjusted Time Series',
-			refresh_interval=12*3600
+			refresh=12*3600
 		)
 	
 
@@ -184,7 +207,7 @@ class AlphaVantage:
 			function='TIME_SERIES_MONTHLY',
 			symbol=symbol,
 			datafield='Monthly Time Series',
-			refresh_interval=2*24*3600
+			refresh=2*24*3600
 		)
 	
 
@@ -196,29 +219,25 @@ class AlphaVantage:
 			function='TIME_SERIES_MONTHLY_ADJUSTED',
 			symbol=symbol,
 			datafield='Monthly Adjusted Time Series',
-			refresh_interval=2*24*3600
+			refresh=2*24*3600
 		)
 
 
-	def get_time_series_intraday(self, symbol, interval='5min'):
+	def get_time_series_intraday(self, symbol, interval='1min'):
 		"""
 		"""
 
 		# Estranhamente, TIME_SERIES_INTRADAY não funciona com a Bovespa. Para
 		# outros valores de symbol, como IBM, tudo funciona normalmente.
 
-		params = {
-			'function': 'TIME_SERIES_INTRADAY',
-			'symbol': symbol,
-			'interval': interval,
-			'apikey': self.api_key,
-		}
+		return self.__get_time_series_generic__(
+			function='TIME_SERIES_INTRADAY',
+			symbol=symbol,
+			datafield='Time Series (%s)' % (interval),
+			refresh=60,
+			interval=interval
+		)
 
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Time Series (%s)' % (interval)]
-		metadata = response.json()['Meta Data']
-
-		return data, metadata
 	
 	def search(self, keywords):
 		"""
@@ -234,5 +253,23 @@ class AlphaVantage:
 		data = response.json()['bestMatches']
 
 		data = self.__remove_prefix_search__(data)
+
+		return data
+	
+
+	def get_quote(self, symbol):
+		"""
+		"""
+
+		params = {
+			'function': 'GLOBAL_QUOTE',
+			'symbol': symbol,
+			'apikey': self.api_key,
+		}
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		data = response.json()['Global Quote']
+
+		data = self.__remove_prefix_quote__(data)
 
 		return data

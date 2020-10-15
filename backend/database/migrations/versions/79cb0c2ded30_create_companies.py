@@ -33,9 +33,12 @@ def upgrade():
 		sa.Column('currency', sa.String)
 	)
 
-	# Fonte: https://www.meusdividendos.com/empresas/ranking
+	# Fonte TOP 10 empresas brasileiras: https://www.meusdividendos.com/empresas/ranking
+	# IBM será usada como exemplo para atualização em tempo real, visto que a função
+	# intraday não está disponível para outras empresas.
 
 	symbols = [
+		'IBM',       # International Business Machines Corporation
 		'BRDT3.SAO', # Petrobras Distribuidora S.A.
 		'ITUB3.SAO', # Itaú Unibanco Holding S.A.
 		'VALE3.SAO', # Vale S.A.
@@ -45,7 +48,7 @@ def upgrade():
 		'BBAS3.SAO', # Banco do Brasi S.A.
 		'SANB3.SAO', # Banco Santander (Brasil) S.A.
 		'ABEV3.SAO', # Ambev S.A.
-		'ITSA3.SAO' # Itaúsa - Investimentos Itaú S.A.
+		'ITSA3.SAO'  # Itaúsa - Investimentos Itaú S.A.
 	]
 
 	companies = []
@@ -53,14 +56,14 @@ def upgrade():
 
 	print('Iniciando população do BD...')
 	print('Essa operação demorar até 4 minutos.')
-	print('Pausas programadas serão realizadas para respeitar o limite da API ', end='')
-	print('gratuita do Alpha Vantage.')
+	print('Pausas programadas serão realizadas para respeitar o limite da API '
+		'gratuita do Alpha Vantage.')
 
 	for s in symbols:
 		print('Buscando %s...' % (s))
 		result = alpha.search(keywords=s)
 		company = result[0]
-		print('%s encontrado' % (s))
+		print('Empresa encontrada: %s' % (s))
 		companies.append({
 			'symbol': s,
 			'name': company['name'],

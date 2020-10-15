@@ -1,6 +1,7 @@
 <template>
 <div class="small">
 	<line-chart class="padding30" :chart-data="datacollection"></line-chart>
+	<!-- <button class="round-corners" @click="get_data('intraday')">Intraday</button> -->
 	<button class="round-corners" @click="get_data('daily')">Diário</button>
 	<button class="round-corners" @click="get_data('weekly')">Semanal</button>
 	<button class="round-corners" @click="get_data('monthly')">Mensal</button>

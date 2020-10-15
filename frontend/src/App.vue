@@ -1,7 +1,7 @@
 <template>
 <div id="app" :class="this.$vssWidth >= 992 ? 'medium-container' : ''">
 	<router-view/>
-	<sidebar-menu :menu="menu" collapsed=true hideToggle=true />
+	<sidebar-menu :menu="menu" :collapsed="true" :hideToggle="true" />
 </div>
 </template>
 
