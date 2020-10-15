@@ -4,11 +4,14 @@ services:
   postgres:
     image: postgres:13.0-alpine
     container_name: bovespa-empresas-database
-    # ports:
-    #   - "15432:5432"
     restart: always
     environment:
       - POSTGRES_PASSWORD=PLACEHOLDER_PASSWORD
+  # Redis
+  redis:
+    image: redis:3.2-alpine
+    container_name: bovespa-empresas-redis
+    restart: always
   # Backend Bovespa/Empresas
   app:
     container_name: bovespa-empresas-backend
@@ -20,3 +23,4 @@ services:
       - "8000:8000"
     depends_on:
       - postgres
+      - redis

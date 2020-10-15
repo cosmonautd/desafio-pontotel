@@ -1,5 +1,9 @@
 import requests
 import json
+import time
+import datetime
+
+import redis
 
 from modules import config
 
@@ -11,6 +15,7 @@ class AlphaVantage:
 		"""
 		"""
 		self.api_key = api_key
+		self.cache = redis.Redis('bovespa-empresas-redis')
 	
 
 	def __remove_prefix_timeseries__(self, data):
@@ -57,134 +62,142 @@ class AlphaVantage:
 			data['matchScore'] = data.pop('9. matchScore', 0)
 
 		return array
+	
+
+	def __get_from_cache__(self, key, refresh_interval):
+		"""
+		"""
+
+		entry = self.cache.get(key)
+
+		if entry == None:
+			return None
+		else:
+			entry = json.loads(entry)
+			timestamp = entry['timestamp']
+			if time.time() - timestamp > refresh_interval:
+				return None
+			else:
+				return entry['value']
+	
+
+	def __save_to_cache__(self, key, value):
+		"""
+		"""
+
+		entry = json.dumps({'value': value, 'timestamp': time.time()})
+
+		self.cache.set(key, entry)
+	
+
+	def __get_time_series_generic__(self, function, symbol, datafield, refresh_interval):
+		"""
+		"""
+
+		params = {
+			'function': function,
+			'symbol': symbol,
+			'apikey': self.api_key,
+		}
+
+		q = '%s-%s' % (symbol, function)
+
+		response_json = self.__get_from_cache__(q, refresh_interval)
+
+		if response_json == None:
+
+			response = requests.get(ALPHAVANTAGE_URI, params=params)
+			response_json = response.json()
+
+			try:
+				data = response_json[datafield]
+				metadata = response_json['Meta Data']
+			except:
+				return None, None
+
+			self.__save_to_cache__(q, response_json)
+		
+		else:
+
+			data = response_json[datafield]
+			metadata = response_json['Meta Data']
+
+		data = self.__remove_prefix_timeseries__(data)
+		data = self.__transform_number__(data)
+
+		return data, metadata
 
 
 	def get_time_series_daily(self, symbol):
 		"""
 		"""
 
-		params = {
-			'function': 'TIME_SERIES_DAILY',
-			'symbol': symbol,
-			'outputsize': 'compact',
-			'datatype': 'json',
-			'apikey': self.api_key,
-		}
+		return self.__get_time_series_generic__(
+			function='TIME_SERIES_DAILY',
+			symbol=symbol,
+			datafield='Time Series (Daily)',
+			refresh_interval=3600
+		)
 
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Time Series (Daily)']
-		metadata = response.json()['Meta Data']
-
-		data = self.__remove_prefix_timeseries__(data)
-		data = self.__transform_number__(data)
-
-		return data, metadata
-	
 
 	def get_time_series_daily_adjusted(self, symbol):
 		"""
 		"""
 
-		params = {
-			'function': 'TIME_SERIES_DAILY_ADJUSTED',
-			'symbol': symbol,
-			'outputsize': 'compact',
-			'datatype': 'json',
-			'apikey': self.api_key
-		}
-
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Time Series (Daily)']
-		metadata = response.json()['Meta Data']
-
-		data = self.__remove_prefix_timeseries__(data)
-		data = self.__transform_number__(data)
-
-		return data, metadata
+		return self.__get_time_series_generic__(
+			function='TIME_SERIES_DAILY_ADJUSTED',
+			symbol=symbol,
+			datafield='Time Series (Daily)',
+			refresh_interval=3600
+		)
 	
 
 	def get_time_series_weekly(self, symbol):
 		"""
 		"""
 
-		params = {
-			'function': 'TIME_SERIES_WEEKLY',
-			'symbol': symbol,
-			'datatype': 'json',
-			'apikey': self.api_key,
-		}
-
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Weekly Time Series']
-		metadata = response.json()['Meta Data']
-
-		data = self.__remove_prefix_timeseries__(data)
-		data = self.__transform_number__(data)
-
-		return data, metadata
+		return self.__get_time_series_generic__(
+			function='TIME_SERIES_WEEKLY',
+			symbol=symbol,
+			datafield='Weekly Time Series',
+			refresh_interval=12*3600
+		)
 	
 
 	def get_time_series_weekly_adjusted(self, symbol):
 		"""
 		"""
 
-		params = {
-			'function': 'TIME_SERIES_WEEKLY_ADJUSTED',
-			'symbol': symbol,
-			'datatype': 'json',
-			'apikey': self.api_key
-		}
-
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Weekly Adjusted Time Series']
-		metadata = response.json()['Meta Data']
-
-		data = self.__remove_prefix_timeseries__(data)
-		data = self.__transform_number__(data)
-
-		return data, metadata
+		return self.__get_time_series_generic__(
+			function='TIME_SERIES_WEEKLY_ADJUSTED',
+			symbol=symbol,
+			datafield='Weekly Adjusted Time Series',
+			refresh_interval=12*3600
+		)
 	
 
 	def get_time_series_monthly(self, symbol):
 		"""
 		"""
 
-		params = {
-			'function': 'TIME_SERIES_MONTHLY',
-			'symbol': symbol,
-			'datatype': 'json',
-			'apikey': self.api_key,
-		}
-
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Monthly Time Series']
-		metadata = response.json()['Meta Data']
-
-		data = self.__remove_prefix_timeseries__(data)
-		data = self.__transform_number__(data)
-
-		return data, metadata
+		return self.__get_time_series_generic__(
+			function='TIME_SERIES_MONTHLY',
+			symbol=symbol,
+			datafield='Monthly Time Series',
+			refresh_interval=2*24*3600
+		)
 	
 
 	def get_time_series_monthly_adjusted(self, symbol):
 		"""
 		"""
 
-		params = {
-			'function': 'TIME_SERIES_MONTHLY_ADJUSTED',
-			'symbol': symbol,
-			'datatype': 'json',
-			'apikey': self.api_key
-		}
-
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Monthly Adjusted Time Series']
-		metadata = response.json()['Meta Data']
-
-		data = self.__remove_prefix_timeseries__(data)
-		data = self.__transform_number__(data)
-
-		return data, metadata
+		return self.__get_time_series_generic__(
+			function='TIME_SERIES_MONTHLY_ADJUSTED',
+			symbol=symbol,
+			datafield='Monthly Adjusted Time Series',
+			refresh_interval=2*24*3600
+		)
 
 
 	def get_time_series_intraday(self, symbol, interval='5min'):
@@ -214,7 +227,6 @@ class AlphaVantage:
 		params = {
 			'function': 'SYMBOL_SEARCH',
 			'keywords': keywords,
-			'datatype': 'json',
 			'apikey': self.api_key,
 		}
 

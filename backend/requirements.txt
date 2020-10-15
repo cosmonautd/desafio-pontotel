@@ -5,3 +5,4 @@ pyyaml
 sqlalchemy
 psycopg2
 alembic
+redis
