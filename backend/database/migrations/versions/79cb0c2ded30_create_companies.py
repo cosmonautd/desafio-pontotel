@@ -38,7 +38,6 @@ def upgrade():
 	# intraday não está disponível para outras empresas.
 
 	symbols = [
-		'IBM',       # International Business Machines Corporation
 		'BRDT3.SAO', # Petrobras Distribuidora S.A.
 		'ITUB3.SAO', # Itaú Unibanco Holding S.A.
 		'VALE3.SAO', # Vale S.A.
@@ -52,12 +51,12 @@ def upgrade():
 	]
 
 	companies = []
-	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
+	alpha = alphavantage.Alpha(api_key=config.get()['alphavantage_api_keys'][0])
+
+	# Essa operação demorar até 1 minuto
+	# Pausas programadas são realizadas para respeitar os limites da API gratuita
 
 	print('Iniciando população do BD...')
-	print('Essa operação demorar até 4 minutos.')
-	print('Pausas programadas serão realizadas para respeitar o limite da API '
-		'gratuita do Alpha Vantage.')
 
 	for s in symbols:
 		print('Buscando %s...' % (s))
@@ -72,8 +71,7 @@ def upgrade():
 			'marketClose': company['marketClose'],
 			'currency': company['currency'],
 		})
-		print('Pausa')
-		time.sleep(20)
+		time.sleep(5)
 	
 	op.bulk_insert(
 		companies_table,

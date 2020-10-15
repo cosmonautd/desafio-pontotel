@@ -5,11 +5,9 @@ import datetime
 
 import redis
 
-from modules import config
-
 ALPHAVANTAGE_URI = 'https://www.alphavantage.co/query'
 
-class AlphaVantage:
+class Alpha:
 
 	def __init__(self, api_key):
 		"""
@@ -273,3 +271,82 @@ class AlphaVantage:
 		data = self.__remove_prefix_quote__(data)
 
 		return data
+
+
+class AlphaMultiKeys():
+
+	def __init__(self, api_keys):
+		"""
+		"""
+		self.api_keys = api_keys
+		self.alpha_workers = [Alpha(api_key=k) for k in self.api_keys]
+		self.number_of_workers = len(self.alpha_workers)
+		self.index = -1
+
+
+	def __increment_index__(self):
+		"""
+		"""
+		self.index = (self.index + 1) % self.number_of_workers
+
+	def get_time_series_daily(self, symbol):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_time_series_daily(symbol)
+
+
+	def get_time_series_daily_adjusted(self, symbol):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_time_series_daily_adjusted(symbol)
+	
+
+	def get_time_series_weekly(self, symbol):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_time_series_weekly(symbol)
+	
+
+	def get_time_series_weekly_adjusted(self, symbol):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_time_series_weekly_adjusted(symbol)
+	
+
+	def get_time_series_monthly(self, symbol):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_time_series_monthly(symbol)
+	
+
+	def get_time_series_monthly_adjusted(self, symbol):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_time_series_monthly_adjusted(symbol)
+
+
+	def get_time_series_intraday(self, symbol, interval='1min'):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_time_series_intraday(symbol, interval)
+
+	
+	def search(self, keywords):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].search(keywords)
+	
+
+	def get_quote(self, symbol):
+		"""
+		"""
+		self.__increment_index__()
+		return self.alpha_workers[self.index].get_quote(symbol)

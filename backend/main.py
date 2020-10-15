@@ -20,6 +20,7 @@ app.add_middleware(
     allow_origins=origins
 )
 
+alpha = alphavantage.Alpha(api_key=config.get()['alphavantage_api_keys'][0])
 
 @app.get('/')
 async def root():
@@ -39,8 +40,6 @@ class Period(str, enum.Enum):
 async def bovespa(period: Period):
 	"""
 	"""
-
-	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
 
 	if period == Period.daily:
 
@@ -99,7 +98,6 @@ async def search(keywords: str):
 	"""
 	"""
 
-	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
 	result = alpha.search(keywords=keywords)
 
 	return {'success': True, 'result': result}
@@ -109,8 +107,6 @@ async def search(keywords: str):
 async def company(symbol: str, period: Period):
 	"""
 	"""
-
-	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
 
 	if period == Period.intraday:
 
@@ -168,7 +164,6 @@ async def search(symbol: str):
 	"""
 	"""
 
-	alpha = alphavantage.AlphaVantage(api_key=config.get()['alphavantage_api_key'])
 	data = alpha.get_quote(symbol=symbol)
 
 	return {'success': True, 'data': data}
