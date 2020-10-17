@@ -10,26 +10,35 @@ from modules import alphavantage
 from modules import config
 from database import db
 
-alpha = alphavantage.AlphaMultiKeys(
-	api_keys=config.get()['alphavantage_api_keys'],
-	tor=True
-)
-
-with db.transaction() as session:
-	companies = db.list_companies(session)
-
-symbols = [config.get()['bovespa']] + [company['symbol'] for company in companies]
-loopindex = 0
-
-def __increment_loopindex__():
-	global loopindex
-	loopindex = (loopindex + 1) % len(symbols)
-
 PORT = 5556
 
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind('tcp://*:%s' % (PORT))
+
+alpha = alphavantage.AlphaMultiKeys(
+	api_keys=config.get()['alphavantage_api_keys'],
+	tor=True
+)
+
+equities = None
+while equities is None:
+	try:
+		with db.transaction() as session:
+			equities = db.list_equities(session)
+	except:
+		pass
+	finally:
+		time.sleep(10)
+
+symbols = [equity['symbol'] for equity in equities]
+loopindex = 0
+
+def __increment_loopindex__():
+	"""
+	"""
+	global loopindex
+	loopindex = (loopindex + 1) % len(symbols)
 
 while True:
 
@@ -39,12 +48,8 @@ while True:
 
 		data = alpha.get_quote(symbol=symbol)
 
-		if symbol == config.get()['bovespa']:
-			with db.transaction() as session:
-				new_ibovespa = db.create_ibovespa(session, data)
-		else:
-			with db.transaction() as session:
-				new_price = db.create_price(session, data)
+		with db.transaction() as session:
+			new_quote = db.create_quote(session, data)
 
 		topic = 'QUOTE_%s' % (symbol)
 		message = json.dumps(data)
@@ -60,4 +65,4 @@ while True:
 	finally:
 
 		__increment_loopindex__()
-		time.sleep(18)
+		time.sleep(16.4)

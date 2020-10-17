@@ -37,6 +37,7 @@ services:
     depends_on:
       - postgres
       - tor
+      - app
   # Backend Bovespa/Empresas
   app:
     build: "."

@@ -12,9 +12,9 @@ class User(Base):
 	username = Column(String, primary_key=True, index=True)
 	hashed_password = Column(String)
 
-## Definição da Empresa
-class Company(Base):
-	__tablename__ = 'companies'
+## Definição de uma Equity
+class Equity(Base):
+	__tablename__ = 'equities'
 
 	symbol = Column(String, primary_key=True, index=True)
 	name = Column(String)
@@ -22,12 +22,13 @@ class Company(Base):
 	market_open = Column(String)
 	market_close = Column(String)
 	currency = Column(String)
+	type = Column(String)
 
-	prices = relationship('Price')
+	quotes = relationship('Quote')
 
 ## Definição da Cotação
-class Price(Base):
-	__tablename__ = 'prices'
+class Quote(Base):
+	__tablename__ = 'quotes'
 
 	id = Column(Integer, primary_key=True)
 	open = Column(Float)
@@ -40,19 +41,4 @@ class Price(Base):
 	change = Column(Float)
 	change_percent = Column(Float)
 
-	company_symbol = Column(String, ForeignKey('companies.symbol'), index=True)
-
-## Definição da Índice Bovespa
-class Ibovespa(Base):
-	__tablename__ = 'ibovespa'
-
-	id = Column(Integer, primary_key=True)
-	open = Column(Float)
-	high = Column(Float)
-	low = Column(Float)
-	price = Column(Float)
-	volume = Column(Integer)
-	latest_trading_day = Column(String)
-	previous_close = Column(Float)
-	change = Column(Float)
-	change_percent = Column(Float)
+	equity_symbol = Column(String, ForeignKey('equities.symbol'), index=True)

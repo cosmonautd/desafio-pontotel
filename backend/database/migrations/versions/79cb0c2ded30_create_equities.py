@@ -1,4 +1,4 @@
-"""create companies
+"""create equities
 
 Revision ID: 79cb0c2ded30
 Revises: 
@@ -22,14 +22,15 @@ depends_on = None
 
 def upgrade():
 
-	companies_table = op.create_table(
-		'companies',
+	equities_table = op.create_table(
+		'equities',
 		sa.Column('symbol', sa.String, primary_key=True, index=True),
 		sa.Column('name', sa.String),
         sa.Column('region', sa.String),
 		sa.Column('market_open', sa.String),
 		sa.Column('market_close', sa.String),
-		sa.Column('currency', sa.String)
+		sa.Column('currency', sa.String),
+		sa.Column('type', sa.String)
 	)
 
 	# Fonte TOP 10 empresas brasileiras: https://www.meusdividendos.com/empresas/ranking
@@ -37,19 +38,20 @@ def upgrade():
 	# intraday não está disponível para outras empresas.
 
 	symbols = [
-		'BRDT3.SAO', # Petrobras Distribuidora S.A.
-		'ITUB3.SAO', # Itaú Unibanco Holding S.A.
-		'VALE3.SAO', # Vale S.A.
-		'OIBR3.SAO', # Oi S.A.
-		'BBDC3.SAO', # Banco Bradesco S.A.
-		'LIPR3.SAO', # Eletrobras Participações S.A. - Eletropar
-		'BBAS3.SAO', # Banco do Brasi S.A.
-		'SANB3.SAO', # Banco Santander (Brasil) S.A.
-		'ABEV3.SAO', # Ambev S.A.
-		'ITSA3.SAO'  # Itaúsa - Investimentos Itaú S.A.
+		[config.get()['bovespa'], 'index'],
+		['BRDT3.SAO', 'company'], # Petrobras Distribuidora S.A.
+		['ITUB3.SAO', 'company'], # Itaú Unibanco Holding S.A.
+		['VALE3.SAO', 'company'], # Vale S.A.
+		['OIBR3.SAO', 'company'], # Oi S.A.
+		['BBDC3.SAO', 'company'], # Banco Bradesco S.A.
+		['LIPR3.SAO', 'company'], # Eletrobras Participações S.A. - Eletropar
+		['BBAS3.SAO', 'company'], # Banco do Brasi S.A.
+		['SANB3.SAO', 'company'], # Banco Santander (Brasil) S.A.
+		['ABEV3.SAO', 'company'], # Ambev S.A.
+		['ITSA3.SAO', 'company']  # Itaúsa - Investimentos Itaú S.A.
 	]
 
-	companies = []
+	equities = []
 	alpha = alphavantage.AlphaMultiKeys(
 		api_keys=config.get()['alphavantage_api_keys'],
 		tor=True
@@ -60,25 +62,26 @@ def upgrade():
 
 	print('Iniciando população do BD...')
 
-	for s in symbols:
-		print('Adicionando %s...' % (s))
+	for s, type_ in symbols:
+		print('Buscando %s...' % (s))
 		result = alpha.search(keywords=s)
-		company = result[0]
-		companies.append({
+		equity = result[0]
+		equities.append({
 			'symbol': s,
-			'name': company['name'],
-			'region': company['region'],
-			'market_open': company['marketOpen'],
-			'market_close': company['marketClose'],
-			'currency': company['currency'],
+			'name': equity['name'],
+			'region': equity['region'],
+			'market_open': equity['marketOpen'],
+			'market_close': equity['marketClose'],
+			'currency': equity['currency'],
+			'type': type_
 		})
 		time.sleep(5)
 	
 	op.bulk_insert(
-		companies_table,
-		companies
+		equities_table,
+		equities
 	)
 
 
 def downgrade():
-	op.drop_table('companies')
+	op.drop_table('equities')

@@ -51,7 +51,7 @@ export default {
 			}
 		},
 		get_data (period) {
-			this.axios.get(`http://localhost:8000/company/${this.symbol}/${period}`)
+			this.axios.get(`http://localhost:8000/equity/${this.symbol}/${period}`)
 			.then((response) => {
 				this.company_data = response.data.data
 				this.fill_data()

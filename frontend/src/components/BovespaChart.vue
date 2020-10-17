@@ -47,7 +47,7 @@ export default {
 			}
 		},
 		get_data (period) {
-			this.axios.get(`http://localhost:8000/bovespa/${period}`)
+			this.axios.get(`http://localhost:8000/equity/BOVB11.SAO/${period}`)
 			.then((response) => {
 				this.bovespa_data = response.data.data
 				this.fill_data()

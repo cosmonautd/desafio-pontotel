@@ -3,9 +3,8 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database.models import Company
-from database.models import Price
-from database.models import Ibovespa
+from database.models import Equity
+from database.models import Quote
 
 ## URI da instância PostgreSQL
 POSTGRES_DB_URL = 'postgresql+psycopg2://postgres:PLACEHOLDER_PASSWORD@bovespa-empresas-database:5432/postgres'
@@ -40,53 +39,43 @@ def serialize(db_object):
 	return obj_dict
 
 
+def list_equities(session):
+	"""
+	"""
+	
+	query = session.query(Equity)
+	equities = [serialize(q) for q in query.all()]
+
+	return equities
+
+
 def list_companies(session):
 	"""
 	"""
 	
-	query = session.query(Company)
+	query = session.query(Equity).filter_by(type='company')
 	companies = [serialize(q) for q in query.all()]
 
 	return companies
 
 
-def create_price(session, price):
+def create_quote(session, quote):
 	"""
 	"""
 
-	new_price = Price(
-		open=float(price['open']),
-		high=float(price['high']),
-		low=float(price['low']),
-		price=float(price['price']),
-		volume=int(price['volume']),
-		latest_trading_day=str(price['latest trading day']),
-		previous_close=float(price['previous close']),
-		change=float(price['change']),
-		change_percent=float(price['change percent'][:-1]),
-		company_symbol=str(price['symbol'])
+	new_quote = Quote(
+		open=float(quote['open']),
+		high=float(quote['high']),
+		low=float(quote['low']),
+		price=float(quote['price']),
+		volume=int(quote['volume']),
+		latest_trading_day=str(quote['latest trading day']),
+		previous_close=float(quote['previous close']),
+		change=float(quote['change']),
+		change_percent=float(quote['change percent'][:-1]),
+		equity_symbol=str(quote['symbol'])
 	)
 
-	session.add(new_price)
+	session.add(new_quote)
 
-	return new_price
-
-def create_ibovespa(session, ibovespa):
-	"""
-	"""
-
-	new_ibovespa = Ibovespa(
-		open=float(ibovespa['open']),
-		high=float(ibovespa['high']),
-		low=float(ibovespa['low']),
-		price=float(ibovespa['price']),
-		volume=int(ibovespa['volume']),
-		latest_trading_day=str(ibovespa['latest trading day']),
-		previous_close=float(ibovespa['previous close']),
-		change=float(ibovespa['change']),
-		change_percent=float(ibovespa['change percent'][:-1])
-	)
-
-	session.add(new_ibovespa)
-
-	return new_ibovespa
+	return new_quote

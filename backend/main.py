@@ -24,63 +24,17 @@ alpha = alphavantage.AlphaMultiKeys(
 	tor=True
 )
 
-@app.get('/')
-async def root():
-	"""
-	"""
-	return {'online': True}
-
-
 class Period(str, enum.Enum):
 	intraday = 'intraday'
 	daily = 'daily'
 	weekly = 'weekly'
 	monthly = 'monthly'
 
-
-@app.get('/bovespa/{period}')
-async def bovespa(period: Period):
+@app.get('/')
+async def root():
 	"""
 	"""
-
-	if period == Period.daily:
-
-		data, metadata = alpha.get_time_series_daily(symbol=config.get()['bovespa'])
-
-		return {
-			'success': True,
-			'period': 'daily',
-			'data': data, 
-			'metadata': metadata
-		}
-
-	elif period == Period. weekly:
-
-		data, metadata = alpha.get_time_series_weekly(symbol=config.get()['bovespa'])
-
-		return {
-			'success': True,
-			'period': 'weekly',
-			'data': data,
-			'metadata': metadata
-		}
-
-	elif period == Period.monthly:
-
-		data, metadata = alpha.get_time_series_monthly(symbol=config.get()['bovespa'])
-
-		return {
-			'success': True,
-			'period': 'monthly',
-			'data': data,
-			'metadata': metadata
-		}
-	
-	else:
-
-		return {
-			'success': False
-		}
+	return {'online': True}
 
 
 @app.get('/companies')
@@ -104,23 +58,12 @@ async def search(keywords: str):
 	return {'success': True, 'result': result}
 
 
-@app.get('/company/{symbol}/{period}')
-async def company(symbol: str, period: Period):
+@app.get('/equity/{symbol}/{period}')
+async def equity(symbol: str, period: Period):
 	"""
 	"""
 
-	if period == Period.intraday:
-
-		data, metadata = alpha.get_time_series_intraday(symbol=symbol)
-
-		return {
-			'success': True,
-			'period': 'intraday',
-			'data': data, 
-			'metadata': metadata
-		}
-
-	elif period == Period.daily:
+	if period == Period.daily:
 
 		data, metadata = alpha.get_time_series_daily(symbol=symbol)
 
