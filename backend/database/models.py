@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, Enum
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, Enum, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -40,5 +40,6 @@ class Quote(Base):
 	previous_close = Column(Float)
 	change = Column(Float)
 	change_percent = Column(Float)
+	created_at = Column(DateTime(timezone=True))
 
 	equity_symbol = Column(String, ForeignKey('equities.symbol'), index=True)

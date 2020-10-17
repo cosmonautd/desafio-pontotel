@@ -1,3 +1,5 @@
+import datetime
+
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
@@ -73,9 +75,20 @@ def create_quote(session, quote):
 		previous_close=float(quote['previous close']),
 		change=float(quote['change']),
 		change_percent=float(quote['change percent'][:-1]),
+		created_at=datetime.datetime.now(datetime.timezone.utc),
 		equity_symbol=str(quote['symbol'])
 	)
 
 	session.add(new_quote)
 
 	return new_quote
+
+
+def list_quotes(session, symbol):
+	"""
+	"""
+
+	query = session.query(Quote).filter_by(equity_symbol=symbol)
+	quotes = [serialize(q) for q in query.all()]
+
+	return quotes

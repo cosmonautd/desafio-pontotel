@@ -69,6 +69,16 @@ class Alpha:
 		return data
 	
 
+	def __add_price_timeseries__(self, data):
+		"""
+		"""
+
+		for date in data:
+			data[date]['price'] = data[date]['close']
+
+		return data
+
+
 	def __remove_prefix_search__(self, array):
 		"""
 		"""
@@ -169,6 +179,7 @@ class Alpha:
 
 		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
+		data = self.__add_price_timeseries__(data)
 
 		return data, metadata
 

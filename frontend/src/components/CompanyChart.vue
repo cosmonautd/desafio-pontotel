@@ -1,7 +1,7 @@
 <template>
 <div class="small">
 	<line-chart class="padding30" :chart-data="datacollection"></line-chart>
-	<!-- <button class="round-corners" @click="get_data('intraday')">Intraday</button> -->
+	<button class="round-corners" @click="get_data('realtime')">Atual</button>
 	<button class="round-corners" @click="get_data('daily')">Diário</button>
 	<button class="round-corners" @click="get_data('weekly')">Semanal</button>
 	<button class="round-corners" @click="get_data('monthly')">Mensal</button>
@@ -33,7 +33,7 @@ export default {
 			if (this.company_data === null) return []
 			let points = []
 			for (let date of Object.keys(this.company_data).sort()) { // Rever também
-				points.push(this.company_data[date]['close'])
+				points.push(this.company_data[date]['price'])
 			}
 			return points
 		}
@@ -59,7 +59,7 @@ export default {
 		}
 	},
 	mounted() {
-		this.get_data('daily')
+		this.get_data('realtime')
 	},
 }
 </script>

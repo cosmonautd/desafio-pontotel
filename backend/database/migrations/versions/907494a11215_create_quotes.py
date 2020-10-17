@@ -29,6 +29,7 @@ def upgrade():
 		sa.Column('previous_close', sa.Float),
 		sa.Column('change', sa.Float),
 		sa.Column('change_percent', sa.Float),
+		sa.Column('created_at', sa.DateTime(timezone=True)),
 		sa.Column('equity_symbol', sa.String, sa.ForeignKey('equities.symbol'), index=True)
 	)
 

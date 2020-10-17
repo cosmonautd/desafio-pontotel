@@ -25,7 +25,7 @@ alpha = alphavantage.AlphaMultiKeys(
 )
 
 class Period(str, enum.Enum):
-	intraday = 'intraday'
+	realtime = 'realtime'
 	daily = 'daily'
 	weekly = 'weekly'
 	monthly = 'monthly'
@@ -63,7 +63,20 @@ async def equity(symbol: str, period: Period):
 	"""
 	"""
 
-	if period == Period.daily:
+	if period == Period.realtime:
+
+		with db.transaction() as session:
+			data = db.list_quotes(session, symbol)
+			data = {d['created_at'].strftime('%Y-%m-%d %H:%M:%S') : d for d in data}
+
+		return {
+			'success': True,
+			'period': 'realtime',
+			'data': data,
+			'metadata': {}
+		}
+
+	elif period == Period.daily:
 
 		data, metadata = alpha.get_time_series_daily(symbol=symbol)
 
