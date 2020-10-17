@@ -51,7 +51,10 @@ def upgrade():
 	]
 
 	companies = []
-	alpha = alphavantage.Alpha(api_key=config.get()['alphavantage_api_keys'][0])
+	alpha = alphavantage.AlphaMultiKeys(
+		api_keys=config.get()['alphavantage_api_keys'],
+		tor=True
+	)
 
 	# Essa operação demorar até 1 minuto
 	# Pausas programadas são realizadas para respeitar os limites da API gratuita

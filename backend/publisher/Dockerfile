@@ -22,5 +22,6 @@ WORKDIR /backend
 ## Instala dependências
 RUN pip install -r requirements.txt
 
-## Inicia a API (DEV!)
-CMD uvicorn main:app --reload --host 0.0.0.0 --port 8000
+## Inicia o publisher de cotações (DEV!)
+# CMD python publisher/publisher.py
+CMD watchmedo auto-restart -p "*.py" -R python -- publisher/publisher.py

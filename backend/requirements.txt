@@ -1,8 +1,13 @@
 fastapi
 uvicorn
-requests
+pysocks
+requests[socks]
 pyyaml
 sqlalchemy
 psycopg2
 alembic
 redis
+argh
+watchdog
+pyzmq
+torrequest

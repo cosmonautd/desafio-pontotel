@@ -12,10 +12,33 @@ services:
     image: redis:3.2-alpine
     container_name: bovespa-empresas-redis
     restart: always
+  # Tor
+  tor:
+    image: dperson/torproxy
+    container_name: bovespa-empresas-tor
+    ports:
+      - 8118:8118
+      - 9050:9050
+    environment:
+      - TOR_NewCircuitPeriod=10
+  # Publisher de cotações
+  publisher:
+    build:
+      context: "."
+      dockerfile: ./publisher/Dockerfile
+    container_name: bovespa-empresas-publisher
+    restart: always
+    volumes:
+      - ".:/backend"
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - postgres
+      - tor
   # Backend Bovespa/Empresas
   app:
-    container_name: bovespa-empresas-backend
     build: "."
+    container_name: bovespa-empresas-backend
     restart: always
     volumes:
       - ".:/backend"
@@ -24,3 +47,4 @@ services:
     depends_on:
       - postgres
       - redis
+      - tor

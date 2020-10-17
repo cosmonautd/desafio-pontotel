@@ -4,16 +4,41 @@ import time
 import datetime
 
 import redis
+from torrequest import TorRequest
 
 ALPHAVANTAGE_URI = 'https://www.alphavantage.co/query'
 
+def get(params, tor=False):
+	"""
+	"""
+
+	if not tor:
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params)
+		return response.json()
+
+	else:
+
+		proxies = {
+			'http': 'socks5://bovespa-empresas-tor:9050',
+			'https': 'socks5://bovespa-empresas-tor:9050'
+		}
+
+		# myip = requests.get('http://ipv4.plain-text-ip.com', proxies=proxies)
+		# print(myip.text)
+
+		response = requests.get(ALPHAVANTAGE_URI, params=params, proxies=proxies)
+		return response.json()
+
+
 class Alpha:
 
-	def __init__(self, api_key):
+	def __init__(self, api_key, tor=False):
 		"""
 		"""
 		self.api_key = api_key
 		self.cache = redis.Redis('bovespa-empresas-redis')
+		self.tor = tor
 	
 
 	def __remove_prefix_timeseries__(self, data):
@@ -127,8 +152,7 @@ class Alpha:
 
 		if response_json == None:
 
-			response = requests.get(ALPHAVANTAGE_URI, params=params)
-			response_json = response.json()
+			response_json = get(params, tor=self.tor)
 
 			try:
 				data = response_json[datafield]
@@ -247,8 +271,8 @@ class Alpha:
 			'apikey': self.api_key,
 		}
 
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['bestMatches']
+		response_json = get(params, tor=self.tor)
+		data = response_json['bestMatches']
 
 		data = self.__remove_prefix_search__(data)
 
@@ -265,21 +289,21 @@ class Alpha:
 			'apikey': self.api_key,
 		}
 
-		response = requests.get(ALPHAVANTAGE_URI, params=params)
-		data = response.json()['Global Quote']
+		response_json = get(params, tor=self.tor)
+		data = response_json['Global Quote']
 
 		data = self.__remove_prefix_quote__(data)
 
 		return data
 
 
-class AlphaMultiKeys():
+class AlphaMultiKeys:
 
-	def __init__(self, api_keys):
+	def __init__(self, api_keys, tor):
 		"""
 		"""
 		self.api_keys = api_keys
-		self.alpha_workers = [Alpha(api_key=k) for k in self.api_keys]
+		self.alpha_workers = [Alpha(api_key=k, tor=tor) for k in self.api_keys]
 		self.number_of_workers = len(self.alpha_workers)
 		self.index = -1
 

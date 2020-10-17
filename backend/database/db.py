@@ -2,7 +2,8 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+
+from database.models import Company
 
 ## URI da instância PostgreSQL
 POSTGRES_DB_URL = 'postgresql+psycopg2://postgres:PLACEHOLDER_PASSWORD@bovespa-empresas-database:5432/postgres'
@@ -12,9 +13,6 @@ engine = create_engine(POSTGRES_DB_URL)
 
 # Configura uma sessão
 SessionLocal = sessionmaker(engine)
-
-## Configura modo declarativo usando classes para as definições das tabelas no BD
-Base = declarative_base()
 
 @contextmanager
 def transaction():
@@ -29,9 +27,21 @@ def transaction():
     finally:
         session.close()
 
+
 def serialize(db_object):
 	"""
 	"""
 	obj_dict = dict(db_object.__dict__)
 	obj_dict.pop('_sa_instance_state', None)
 	return obj_dict
+
+
+def list_companies(session):
+	"""
+	"""
+	
+	query = session.query(Company)
+	companies = [serialize(q) for q in query.all()]
+
+	return companies
+	

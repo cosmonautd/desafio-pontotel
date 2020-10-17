@@ -7,7 +7,6 @@ from modules import config
 from modules import alphavantage
 
 from database import db
-from database import models
 
 app = FastAPI()
 
@@ -20,7 +19,10 @@ app.add_middleware(
     allow_origins=origins
 )
 
-alpha = alphavantage.Alpha(api_key=config.get()['alphavantage_api_keys'][0])
+alpha = alphavantage.AlphaMultiKeys(
+	api_keys=config.get()['alphavantage_api_keys'],
+	tor=True
+)
 
 @app.get('/')
 async def root():
@@ -87,8 +89,7 @@ async def list_companies():
 	"""
 
 	with db.transaction() as session:
-		query = session.query(models.Company)
-		companies = [db.serialize(q) for q in query.all()]
+		companies = db.list_companies(session)
 
 	return {'success': True, 'companies': companies}
 

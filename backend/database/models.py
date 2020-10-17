@@ -1,7 +1,9 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, Enum
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
-from database.db import Base
+## Configura modo declarativo usando classes para as definições das tabelas no BD
+Base = declarative_base()
 
 ## Definição do Usuário
 class User(Base):
