@@ -9,29 +9,27 @@ Base = declarative_base()
 class User(Base):
 	__tablename__ = 'users'
 
-	id = Column(Integer, primary_key=True, index=True)
-	username = Column(String, primary_key=True)
+	username = Column(String, primary_key=True, index=True)
 	hashed_password = Column(String)
 
 ## Definição da Empresa
 class Company(Base):
 	__tablename__ = 'companies'
 
-	id = Column(Integer, primary_key=True, index=True)
-	symbol = Column(String, unique=True, index=True)
+	symbol = Column(String, primary_key=True, index=True)
 	name = Column(String)
 	region = Column(String)
-	marketOpen = Column(String)
-	marketClose = Column(String)
+	market_open = Column(String)
+	market_close = Column(String)
 	currency = Column(String)
 
-	prices = relationship("Price")
+	prices = relationship('Price')
 
 ## Definição da Cotação
 class Price(Base):
 	__tablename__ = 'prices'
 
-	id = Column(Integer, primary_key=True, index=True)
+	id = Column(Integer, primary_key=True)
 	open = Column(Float)
 	high = Column(Float)
 	low = Column(Float)
@@ -42,4 +40,19 @@ class Price(Base):
 	change = Column(Float)
 	change_percent = Column(Float)
 
-	company_id = Column(Integer, ForeignKey('companies.id'))
+	company_symbol = Column(String, ForeignKey('companies.symbol'), index=True)
+
+## Definição da Índice Bovespa
+class Ibovespa(Base):
+	__tablename__ = 'ibovespa'
+
+	id = Column(Integer, primary_key=True)
+	open = Column(Float)
+	high = Column(Float)
+	low = Column(Float)
+	price = Column(Float)
+	volume = Column(Integer)
+	latest_trading_day = Column(String)
+	previous_close = Column(Float)
+	change = Column(Float)
+	change_percent = Column(Float)

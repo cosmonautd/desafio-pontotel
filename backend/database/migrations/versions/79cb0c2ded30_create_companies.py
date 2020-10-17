@@ -24,12 +24,11 @@ def upgrade():
 
 	companies_table = op.create_table(
 		'companies',
-		sa.Column('id', sa.Integer, primary_key=True),
-		sa.Column('symbol', sa.String, nullable=False),
+		sa.Column('symbol', sa.String, primary_key=True, index=True),
 		sa.Column('name', sa.String),
         sa.Column('region', sa.String),
-		sa.Column('marketOpen', sa.String),
-		sa.Column('marketClose', sa.String),
+		sa.Column('market_open', sa.String),
+		sa.Column('market_close', sa.String),
 		sa.Column('currency', sa.String)
 	)
 
@@ -69,8 +68,8 @@ def upgrade():
 			'symbol': s,
 			'name': company['name'],
 			'region': company['region'],
-			'marketOpen': company['marketOpen'],
-			'marketClose': company['marketClose'],
+			'market_open': company['marketOpen'],
+			'market_close': company['marketClose'],
 			'currency': company['currency'],
 		})
 		time.sleep(5)

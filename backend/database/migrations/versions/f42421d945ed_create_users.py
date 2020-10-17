@@ -19,9 +19,8 @@ depends_on = None
 def upgrade():
 	companies_table = op.create_table(
 		'users',
-		sa.Column('id', sa.Integer, primary_key=True, index=True),
-		sa.Column('username', sa.String(20), nullable=False),
-		sa.Column('hashed_password', sa.String(64))
+		sa.Column('username', sa.String, primary_key=True, index=True),
+		sa.Column('hashed_password', sa.String)
 	)
 
 

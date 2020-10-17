@@ -30,6 +30,8 @@ services:
     restart: always
     volumes:
       - ".:/backend"
+    ports:
+      - 5556:5556
     environment:
       - PYTHONUNBUFFERED=1
     depends_on:
