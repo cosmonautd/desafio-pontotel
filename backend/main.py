@@ -1,7 +1,10 @@
 import enum
+import asyncio
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+
+import zmq
 
 from modules import config
 from modules import alphavantage
@@ -16,7 +19,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins
+    allow_origins=['*']
 )
 
 alpha = alphavantage.AlphaMultiKeys(
@@ -124,3 +127,57 @@ async def search(symbol: str):
 	data = alpha.get_quote(symbol=symbol)
 
 	return {'success': True, 'data': data}
+
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+@app.websocket('/ws')
+async def websocket_endpoint(websocket: WebSocket):
+	"""
+	"""
+
+	await manager.connect(websocket)
+
+	host = 'bovespa-empresas-publisher'
+	port = '5556'
+
+	# Creates a socket instance
+	context = zmq.Context()
+	socket = context.socket(zmq.SUB)
+
+	# Connects to a bound socket
+	socket.connect("tcp://{}:{}".format(host, port))
+
+	# Subscribes to all topics
+	socket.subscribe("")
+
+	# Receives a string format message
+	while True:
+
+		try:
+			await asyncio.sleep(5)
+			message = socket.recv(flags=zmq.NOBLOCK)
+			message = message.decode('utf-8')
+			await manager.send_personal_message(message, websocket)
+		except zmq.Again as e:
+			pass
+		except WebSocketDisconnect:
+			manager.disconnect(websocket)

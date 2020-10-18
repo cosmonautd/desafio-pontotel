@@ -23,5 +23,4 @@ WORKDIR /backend
 RUN pip install -r requirements.txt
 
 ## Inicia o publisher de cotações (DEV!)
-# CMD python publisher/publisher.py
 CMD watchmedo auto-restart -p "*.py" -R python -- publisher/publisher.py

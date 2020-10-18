@@ -10,7 +10,6 @@
 
 <script>
 import LineChart from './LineChart.vue'
-// import zmq from 'zeromq'
 
 export default {
 	components: {
@@ -19,7 +18,8 @@ export default {
 	data () {
 		return {
 			datacollection: null,
-			bovespa_data: null
+			bovespa_data: null,
+			websocket: null
 		}
 	},
 	computed: {
@@ -57,8 +57,24 @@ export default {
 		}
 	},
 	mounted() {
+
 		this.get_data('realtime')
+
+		console.log("Conectando ao websocket")
+		this.websocket = new WebSocket('ws://localhost:8000/ws')
+		this.websocket.onmessage = function(event) {
+			console.log(event.data);
+		}
+		this.websocket.onopen = function() {
+			console.log("Websocket conectado!")
+		}
+		this.websocket.onclose = function() {
+			console.log("Websocket desconectado!")
+		}
 	},
+	beforeDestroy() {
+		this.websocket.close()
+	}
 }
 </script>
 
