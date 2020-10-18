@@ -1,19 +1,26 @@
 <template>
-<div id="landing">
-	<div class="container-fluid">
-		<div class="vertical-spacing-1"></div>
-		<div class="vertical-spacing-top"/>
-		<h1 class="bovespa-title">{{$route.params.symbol}}</h1>
-		<Chart :symbol="$route.params.symbol"/>
-		<div class="vertical-spacing-1"></div>
-	</div>
+<div id="company-info">
+	<div class="vertical-spacing-1"></div>
+	<div class="vertical-spacing-top"/>
+	<b-container fluid class="bv-example-row">
+		<b-row align-h="center" style="height: 100%;">
+			<b-col xs="10" sm="10" md="10" lg="10" xl="10" align-self="center">
+				<b-row align-h="center" align-v="start">
+					<h1 class="bovespa-title" style="color: #444">{{$route.params.symbol}}</h1>
+				</b-row>
+			</b-col>
+			<b-col sm="12" md="12" lg="12" xl="12">
+				<Chart :symbol="$route.params.symbol"/>
+			</b-col>
+		</b-row>
+	</b-container>
 </div>
 </template>
 
 <script>
 import Chart from "./Chart.vue";
 export default {
-	name: "landing",
+	name: "company-info",
 	components: {
 		Chart
 	}
@@ -21,4 +28,25 @@ export default {
 </script>
 
 <style scoped>
+th {
+	text-align: center;
+	border-bottom: 0px;
+	background-color: #0366ee;
+}
+td {
+	text-align: center;
+	border-bottom: 0px;
+	background-color: #ffffff;
+	opacity: 0.7;
+}
+table {
+	border-collapse: separate; 
+	border-spacing: 0 1em;
+}
+.left-round-corners {
+	border-radius: 15px 0px 0px 15px;
+}
+.right-round-corners {
+	border-radius: 0px 15px 15px 0px;
+}
 </style>

@@ -1,10 +1,53 @@
 <template>
-<div class="small">
-	<line-chart class="padding30" :chart-data="datacollection"></line-chart>
-	<button class="round-corners" @click="get_data('realtime')">Atual</button>
-	<button class="round-corners" @click="get_data('daily')">Diário</button>
-	<button class="round-corners" @click="get_data('weekly')">Semanal</button>
-	<button class="round-corners" @click="get_data('monthly')">Mensal</button>
+<div>
+	<div class="yay">
+		<b-row align-h="center">
+			<div>
+				<div class="align-left">
+					<p v-if="symbol==='BOVB11.SAO'">
+					The Bovespa Index, best known as Ibovespa is the benchmark index of 
+					about 70 stocks that are traded on the B3 (Brasil Bolsa Balcão), 
+					which account for the majority of trading and market capitalization 
+					in the Brazilian stock market. </p>
+					<p v-else>
+						{{equity_description}}
+					</p>
+				</div>
+			</div>
+		</b-row>
+		<table class="datatable">
+			<tbody>
+				<tr>
+					<td class="left-round-corners current-value">
+						R$ {{current_price}}
+					</td>
+					<td class="current-others">
+						Open <br> {{current_open}}
+					</td>
+					<td class="current-others">
+						High <br> {{current_high}}
+					</td>
+					<td class="current-others">
+						Low <br> {{current_low}}
+					</td>
+					<td class="current-others">
+						Change <br> {{current_change}} ({{current_change_percent}})
+					</td>
+					<td class="current-others">
+						Latest trading day <br> {{latest_trading_day}}
+					</td>
+					<td class="right-round-corners current-others">
+						Last update <br> {{last_update_time}}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<line-chart class="padding20" :chart-data="datacollection" :options="options"></line-chart>
+		<button class="round-corners" @click="get_data('realtime')">Real time</button>
+		<button class="round-corners" @click="get_data('daily')">Daily</button>
+		<button class="round-corners" @click="get_data('weekly')">Weekly</button>
+		<button class="round-corners" @click="get_data('monthly')">Monthly</button>
+	</div>
 </div>
 </template>
 
@@ -18,23 +61,117 @@ export default {
 	props: {
 		symbol: String
 	},
+	computed: {
+		current_price () {
+			if (this.last_update !== null)
+				return this.last_update['price'];
+			else return '';
+		},
+		current_open () {
+			if (this.last_update !== null)
+				return this.last_update['open'];
+			else return '';
+		},
+		current_high () {
+			if (this.last_update !== null)
+				return this.last_update['high'];
+			else return '';
+		},
+		current_low () {
+			if (this.last_update !== null)
+				return this.last_update['low'];
+			else return '';
+		},
+		current_change () {
+			if (this.last_update !== null)
+				return this.last_update['change'];
+			else return '';
+		},
+		current_change_percent () {
+			if (this.last_update !== null){
+				let change_percent = this.last_update['change_percent']
+				if (change_percent < 0) return `- ${Math.abs(change_percent)}%`;
+				else return `+ ${change_percent}%`;
+			}
+			else return '';
+		},
+		latest_trading_day () {
+			if (this.last_update !== null)
+				return this.last_update['latest_trading_day'];
+			else return '';
+		},
+		last_update_time () {
+			if (this.last_update !== null)
+				return this.last_update['created_at'].substring(0,19);
+			else return '';
+		}
+	},
 	data () {
 		return {
 			datacollection: {labels: [], datasets: []},
-			bovespa_data: null,
+			equity_data: {},
+			equity_description: '',
 			websocket: null,
-			period: 'realtime'
+			period: 'realtime',
+			last_update: null,
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				layout: {
+					padding: 1
+				},
+				title: {
+					// fontSize: 26,
+					display: true,
+					// text: 'Total confirmed cases'
+				},
+				scales: {
+					xAxes: [{
+						ticks: {
+							// fontSize: 24
+						},
+						scaleLabel: {
+							display: false,
+							labelString: 'Date'
+						}
+					}],
+					yAxes: [{
+						type: 'linear',
+						scaleLabel: {
+							display: true,
+							labelString: 'Quote (R$)'
+						},
+						ticks: {
+							// fontSize: 24,
+							sampleSize: 6
+						}
+					}]
+				},
+				legend: {
+					position: 'top',
+					labels : {
+						fontSize: 18
+					}
+				},
+				elements: {
+					line: {
+						borderWidth: 4
+					}
+				}
+			}
 		}
 	},
 	methods: {
 		graph_data () {
-			if (this.bovespa_data === null) return [];
-			let labels = Object.keys(this.bovespa_data);
+			if (this.equity_data === null) return [];
+			let labels = Object.keys(this.equity_data);
 			labels = labels.sort();
 			labels = labels.slice(Math.max(labels.length - 40, 0));
-			let datapoints = labels.map(label => this.bovespa_data[label]['price']);
-			if (this.period === 'realtime')
+			let datapoints = labels.map(label => this.equity_data[label]['price']);
+			if (this.period === 'realtime') {
+				this.last_update = this.equity_data[labels[labels.length-1]]
 				labels = labels.map(label => label.substring(11,16));
+			}
 			return [labels, datapoints];
 		},
 		fill_data () {
@@ -53,7 +190,7 @@ export default {
 			this.period = period
 			this.axios.get(`http://localhost:8000/equity/${this.symbol}/${this.period}`)
 			.then((response) => {
-				this.bovespa_data = response.data.data
+				this.equity_data = response.data.data
 				this.fill_data()
 			})
 		}
@@ -68,7 +205,7 @@ export default {
 		this.websocket = new WebSocket(`ws://localhost:8000/quote/realtime/${this.symbol}/ws`)
 		this.websocket.onmessage = function(event) {
 			let data = JSON.parse(event.data);
-			component.bovespa_data[data.created_at] = data;
+			component.equity_data[data.created_at] = data;
 			component.fill_data()
 		}
 		this.websocket.onopen = function() {
@@ -89,7 +226,41 @@ export default {
 	max-width: 600px;
 	margin:  25px auto;
 }
-.padding30 {
-	padding: 30px;
+.padding20 {
+	padding: 20px;
+}
+th {
+	text-align: center;
+	border-bottom: 0px;
+	background-color: #0366ee;
+}
+td {
+	text-align: center;
+	border-bottom: 0px;
+	background-color: #ffffff;
+	opacity: 0.7;
+}
+.left-round-corners {
+	border-radius: 15px 0px 0px 15px;
+}
+.right-round-corners {
+	border-radius: 0px 15px 15px 0px;
+}
+.yay {
+	height: 100%;
+	width: 95%;
+	margin-left: auto;
+	margin-right: auto
+}
+.datatable {
+	margin-top:2em;
+}
+.current-value {
+	font-weight: bold;
+	font-size: xx-large;
+}
+.current-others {
+	font-weight: bold;
+	font-size: medium;
 }
 </style>

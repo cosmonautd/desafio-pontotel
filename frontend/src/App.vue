@@ -79,7 +79,7 @@ p {
   width: 50%;
 }
 .medium-container {
-	max-width: 1200px;
+	max-width: 1400px;
 }
 .bovespa-modal {
 	background-color: #1D1D1D;
