@@ -1,5 +1,6 @@
 import enum
 import asyncio
+import signal
 
 import websockets
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -11,6 +12,21 @@ from modules import config
 from modules import alphavantage
 
 from database import db
+
+from uvicorn.main import Server
+
+original_handler = Server.handle_exit
+
+class AppStatus:
+    should_exit = False
+
+    @staticmethod
+    def handle_exit(*args, **kwargs):
+        AppStatus.should_exit = True
+        original_handler(*args, **kwargs)
+
+Server.handle_exit = AppStatus.handle_exit
+
 
 app = FastAPI()
 
@@ -71,6 +87,7 @@ async def equity(symbol: str, period: Period):
 
 		with db.transaction() as session:
 			data = db.list_quotes(session, symbol)
+			data = data[-40:]
 			data = {d['created_at'].strftime('%Y-%m-%d %H:%M:%S') : d for d in data}
 
 		return {
@@ -144,7 +161,7 @@ class ConnectionManager:
 	async def send_personal_message(self, message: str, websocket: WebSocket):
 		try:
 			await websocket.send_text(message)
-		except websockets.exceptions.ConnectionClosedError as e:
+		except:
 			pass
 
 	async def broadcast(self, message: str):
@@ -153,8 +170,8 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-@app.websocket('/ws')
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket('/quote/realtime/{symbol}/ws')
+async def websocket_endpoint(websocket: WebSocket, symbol: str):
 	"""
 	"""
 
@@ -171,15 +188,16 @@ async def websocket_endpoint(websocket: WebSocket):
 	socket.connect("tcp://{}:{}".format(host, port))
 
 	# Subscribes to all topics
-	socket.subscribe("")
+	socket.subscribe('QUOTE_%s' % (symbol))
 
 	# Receives a string format message
-	while True:
+	while AppStatus.should_exit is False:
 
 		try:
 			await asyncio.sleep(5)
 			message = socket.recv(flags=zmq.NOBLOCK)
 			message = message.decode('utf-8')
+			message = message[message.index(' ')+1:]
 			await manager.send_personal_message(message, websocket)
 		except zmq.Again as e:
 			pass

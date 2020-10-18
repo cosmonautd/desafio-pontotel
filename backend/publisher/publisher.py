@@ -2,6 +2,7 @@ import sys
 import time
 import json
 import traceback
+import datetime
 
 import zmq
 
@@ -40,6 +41,13 @@ def __increment_loopindex__():
 	global loopindex
 	loopindex = (loopindex + 1) % len(symbols)
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, z):
+        if isinstance(z, datetime.datetime):
+            return (z.strftime('%Y-%m-%d %H:%M:%S'))
+        else:
+            return super().default(z)
+
 while True:
 
 	try:
@@ -52,7 +60,7 @@ while True:
 			new_quote = db.create_quote(session, data)
 
 		topic = 'QUOTE_%s' % (symbol)
-		message = json.dumps(data)
+		message = json.dumps(new_quote, cls=DateTimeEncoder)
 		print('%s: %s' % (topic, message))
 
 		socket.send_string('%s %s' % (topic, message))

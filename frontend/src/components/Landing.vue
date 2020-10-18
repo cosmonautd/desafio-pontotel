@@ -4,18 +4,18 @@
 		<div class="vertical-spacing-1"></div>
 		<div class="vertical-spacing-top"/>
 		<h1 class="bovespa-title">bovespa</h1>
-		<BovespaChart/>
+		<Chart :symbol="'BOVB11.SAO'"/>
 		<div class="vertical-spacing-1"></div>
 	</div>
 </div>
 </template>
 
 <script>
-import BovespaChart from "./BovespaChart.vue";
+import Chart from "./Chart.vue";
 export default {
 	name: "landing",
 	components: {
-		BovespaChart
+		Chart
 	}
 }
 </script>

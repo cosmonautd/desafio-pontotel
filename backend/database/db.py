@@ -81,7 +81,7 @@ def create_quote(session, quote):
 
 	session.add(new_quote)
 
-	return new_quote
+	return serialize(new_quote)
 
 
 def list_quotes(session, symbol):
