@@ -77,6 +77,19 @@ class Alpha:
 			data[date]['price'] = data[date]['close']
 
 		return data
+	
+
+	def __fix_metadata_keys__(self, data):
+		"""
+		"""
+
+		data['information'] = data.pop('1. Information', 0)
+		data['symbol'] = data.pop('2. Symbol', 0)
+		data['last_refreshed'] = data.pop('3. Last Refreshed', 0)
+		data['output_size'] = data.pop('4. Output Size', 0)
+		data['timezone'] = data.pop('5. Time Zone', 0)
+
+		return data
 
 
 	def __remove_prefix_search__(self, array):
@@ -180,6 +193,8 @@ class Alpha:
 		data = self.__remove_prefix_timeseries__(data)
 		data = self.__transform_number__(data)
 		data = self.__add_price_timeseries__(data)
+
+		metadata = self.__fix_metadata_keys__(metadata)
 
 		return data, metadata
 

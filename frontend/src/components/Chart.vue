@@ -189,9 +189,15 @@ export default {
 			}
 		},
 		get_data (period) {
+
 			this.period = period
-			this.axios.get(`http://localhost:8000/equity/${this.symbol}/${this.period}`)
-			.then((response) => {
+			let promise = null;
+
+			if (period !== 'realtime')
+				promise = this.axios.get(`http://localhost:8000/equity/${this.symbol}/${this.period}`);
+			else promise = this.axios.get(`http://localhost:8000/equity-realtime/${this.symbol}`);
+
+			promise.then((response) => {
 				this.equity_data = response.data.data
 				this.fill_data()
 			})
