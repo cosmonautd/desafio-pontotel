@@ -44,11 +44,13 @@ alpha = alphavantage.AlphaMultiKeys(
 	tor=True
 )
 
+
 class Period(str, enum.Enum):
 	realtime = 'realtime'
 	daily = 'daily'
 	weekly = 'weekly'
 	monthly = 'monthly'
+
 
 @app.get('/')
 async def root():
@@ -66,6 +68,18 @@ async def list_companies():
 		companies = db.list_companies(session)
 
 	return {'success': True, 'companies': companies}
+
+
+@app.get('/company/{symbol}')
+async def get_company(symbol: str):
+	"""
+	"""
+
+	with db.transaction() as session:
+		company = db.get_company(session, symbol)
+
+	if company is None: return {'success': False}
+	return {'success': True, 'company': company}
 
 
 @app.get('/search/{keywords}')

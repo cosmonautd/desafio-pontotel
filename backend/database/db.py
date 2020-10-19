@@ -61,6 +61,16 @@ def list_companies(session):
 	return companies
 
 
+def get_company(session, symbol):
+	"""
+	"""
+	
+	query = session.query(Equity).filter_by(type='company', symbol=symbol).first()
+
+	if query is None: return None
+	else: return serialize(query)
+
+
 def create_quote(session, quote):
 	"""
 	"""

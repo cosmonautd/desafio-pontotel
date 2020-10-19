@@ -6,11 +6,13 @@
 		<b-row align-h="center" style="height: 100%;">
 			<b-col xs="10" sm="10" md="10" lg="10" xl="10" align-self="center">
 				<b-row align-h="center" align-v="start">
-					<h1 class="bovespa-title" style="color: #444">{{$route.params.symbol}}</h1>
+					<h1 class="bovespa-title" style="color: #444">
+						{{company_name}} ({{$route.params.symbol}})
+					</h1>
 				</b-row>
 			</b-col>
 			<b-col sm="12" md="12" lg="12" xl="12">
-				<Chart :symbol="$route.params.symbol"/>
+				<Chart :symbol="$route.params.symbol" :company_name="company_name"/>
 			</b-col>
 		</b-row>
 	</b-container>
@@ -23,6 +25,30 @@ export default {
 	name: "company-info",
 	components: {
 		Chart
+	},
+	data () {
+		return {
+			extra: null
+		}
+	},
+	computed: {
+		company_name () {
+			if (this.extra !== null && this.extra.company !== undefined)
+				return this.extra.company.name;
+			else return '';
+		}
+	},
+	methods: {
+		get_company (symbol) {
+			this.axios.get(`http://localhost:8000/company/${symbol}`)
+			.then((response) => {
+				this.extra = {}
+				this.extra.company = response.data.company;
+			})
+		}
+	},
+	mounted () {
+		this.get_company(this.$route.params.symbol);
 	}
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
 <div id="companies-list">
 	<p v-if="companies.length < 1" class="empty-table">
-		<!-- Empresas não encontradas -->
+		Empresas não encontradas
 	</p>
 	<table v-else class="custom-table">
 		<tbody>
@@ -30,7 +30,6 @@ export default {
 	methods: {
 		companyDetails(symbol) {
 			this.$router.push({name: 'company_info', params: {symbol}});
-			console.log(symbol)
 		},
 		get_companies () {
 			this.axios.get(`http://localhost:8000/companies`)

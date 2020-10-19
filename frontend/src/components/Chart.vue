@@ -59,7 +59,8 @@ export default {
 		LineChart
 	},
 	props: {
-		symbol: String
+		symbol: String,
+		company_name: String
 	},
 	computed: {
 		current_price () {
@@ -151,7 +152,8 @@ export default {
 					position: 'top',
 					labels : {
 						fontSize: 18
-					}
+					},
+					display: false
 				},
 				elements: {
 					line: {
@@ -180,7 +182,7 @@ export default {
 				labels,
 				datasets: [
 					{
-						label: this.symbol,
+						label: this.company_name,
 						data: datapoints
 					}
 				]
@@ -201,7 +203,7 @@ export default {
 
 		let component = this;
 
-		console.log("Conectando ao websocket")
+		// console.log("Conectando ao websocket")
 		this.websocket = new WebSocket(`ws://localhost:8000/quote/realtime/${this.symbol}/ws`)
 		this.websocket.onmessage = function(event) {
 			let data = JSON.parse(event.data);
@@ -209,10 +211,10 @@ export default {
 			component.fill_data()
 		}
 		this.websocket.onopen = function() {
-			console.log("Websocket conectado!")
+			// console.log("Websocket conectado!")
 		}
 		this.websocket.onclose = function() {
-			console.log("Websocket desconectado!")
+			// console.log("Websocket desconectado!")
 		}
 	},
 	beforeDestroy() {
