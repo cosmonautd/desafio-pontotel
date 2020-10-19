@@ -1,22 +1,52 @@
+# Imports da biblioteca padrão
 import enum
 import asyncio
 import signal
 
-import websockets
+# Imports relacionados ao fastapi e seu correto funcionamento
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Path
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
+from uvicorn.main import Server
+import websockets
 
+# Import do ZeroMQ
 import zmq
 
+# Imports dos módulos próprios do app
 from modules import config
 from modules import alphavantage
-
 from database import db
 
-from uvicorn.main import Server
 
+# Configuração do app
+app = FastAPI(
+	title='Bovespa/Empresas',
+    description='API do backend Bovespa/Empresas.',
+    version='0.0.1',
+)
+
+# Configuração das origens permitidas
+# Temporariamente, apenas localhost porta 8080, que é o frontend teste
+origins = [
+    'http://localhost:8080'
+]
+
+# Aplicação do CORS ao app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins
+)
+
+# Definição do objeto alpha, que contém as funções relacionadas ao Alpha Vantage
+alpha = alphavantage.AlphaMultiKeys(
+	api_keys=config.get('alphavantage_api_keys'),
+	tor=True
+)
+
+# Configuração de objeto para manter o estado do app
+# Utilizado para interromper o loop dos websockets quando o app é finalizado
 original_handler = Server.handle_exit
 
 class AppStatus:
@@ -30,33 +60,18 @@ class AppStatus:
 Server.handle_exit = AppStatus.handle_exit
 
 
-app = FastAPI(
-	title='Bovespa/Empresas',
-    description='API do backend Bovespa/Empresas.',
-    version='0.0.1',
-)
+# Definição da rota base / e seu modelo de resposta
+class OnlineResponse(BaseModel):
+	online: bool
 
-origins = [
-    'http://localhost:8080'
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*']
-)
-
-alpha = alphavantage.AlphaMultiKeys(
-	api_keys=config.get()['alphavantage_api_keys'],
-	tor=True
-)
+@app.get('/', response_model=OnlineResponse)
+async def online():
+	"""Retorna verdadeiro se o backend está online.
+	"""
+	return {'online': True}
 
 
-class Period(str, enum.Enum):
-	daily = 'daily'
-	weekly = 'weekly'
-	monthly = 'monthly'
-
-
+# Definição da rota /companies e seu modelo de resposta
 class Company(BaseModel):
 	symbol: str
 	region: str
@@ -65,17 +80,6 @@ class Company(BaseModel):
 	market_open: str
 	name: str
 	currency: str
-
-class OnlineResponse(BaseModel):
-	online: bool
-
-@app.get('/', response_model=OnlineResponse)
-async def online():
-	"""
-	Retorna verdadeiro se o backend está online.
-	"""
-	return {'online': True}
-
 
 class CompaniesResponse(BaseModel):
 	success: bool
@@ -93,6 +97,7 @@ async def list_companies():
 	return {'success': True, 'companies': companies}
 
 
+# Definição da rota /company/{symbol} e seu modelo de resposta
 class CompanyResponse(BaseModel):
 	success: bool
 	company: Company
@@ -100,8 +105,7 @@ class CompanyResponse(BaseModel):
 @app.get('/company/{symbol}', response_model=CompanyResponse)
 async def get_company(
 	symbol: str = Path(..., title='Símbolo do capital próprio da empresa')):
-	"""
-	Obtém informações acerca da empresa requisitada, identificada pelo seu símbolo.
+	"""Obtém informações acerca da empresa requisitada, identificada pelo seu símbolo.
 
 	- **symbol**: Símbolo do capital próprio da empresa
 	"""
@@ -113,6 +117,7 @@ async def get_company(
 	return {'success': True, 'company': company}
 
 
+# Definição da rota /search/{keyword} e seu modelo de resposta
 class SearchItemResponse(BaseModel):
 	symbol: str
 	name: str
@@ -131,8 +136,7 @@ class SearchResponse(BaseModel):
 @app.get('/search/{keyword}', response_model=SearchResponse)
 async def search(
 	keyword: str = Path(..., title='Chave de busca para a pesquisa')):
-	"""
-	Realiza busca pelos capitais próprios registrados na API do Alpha Vantage.
+	"""Realiza busca pelos capitais próprios registrados na API do Alpha Vantage.
 
 	- **keyword**: Chave de busca para a pesquisa
 	"""
@@ -141,6 +145,12 @@ async def search(
 
 	return {'success': True, 'result': result}
 
+
+# Definição da rota /equity/{symbol}, seus modelos de input e output
+class Period(str, enum.Enum):
+	daily = 'daily'
+	weekly = 'weekly'
+	monthly = 'monthly'
 
 class QuoteItem(BaseModel):
 	open: float
@@ -170,8 +180,7 @@ class EquityResponse(BaseModel):
 async def equity(
 	symbol: str = Path(..., title='Símbolo do capital próprio'),
 	period: Period = Path(..., title='Regime temporal a ser adotado')):
-	"""
-	Retorna informações de cotação de um capital próprio com base em seu símbolo em
+	"""Retorna informações de cotação de um capital próprio com base em seu símbolo em
 	um determinado regime temporal, que pode ser diário, semanal ou mensal.
 
 	- **symbol**: Símbolo do capital próprio
@@ -249,6 +258,7 @@ async def equity(
 		}
 
 
+# Definição da rota /equity-realtime/{symbol} e seu modelo de resposta
 class EquityRealTimeResponse(BaseModel):
 	success: bool
 	period: str
@@ -258,8 +268,7 @@ class EquityRealTimeResponse(BaseModel):
 @app.get('/equity-realtime/{symbol}', response_model=EquityRealTimeResponse)
 async def equity_realtime(
 	symbol: str = Path(..., title='Símbolo do capital próprio')):
-	"""
-	Retorna as últimas informações de cotação de um capital próprio registradas no
+	"""Retorna as últimas informações de cotação de um capital próprio registradas no
 	banco de dados com base em seu símbolo. Atualmente, a variável metadata contém um 
 	objeto vazio.
 
@@ -327,59 +336,107 @@ async def equity_realtime(
 	}
 
 
+# Gerenciador de conexões via websocket
+# https://fastapi.tiangolo.com/advanced/websockets/
+
 class ConnectionManager:
+	"""Gerenciador de conexões via websocket, com funções para conexão, desconexão,
+	envio de mensagens a um único cliente ou broadcast.
+	"""
 	def __init__(self):
+		"""Construtor do gerenciador de conexões"""
 		self.active_connections: List[WebSocket] = []
 
 	async def connect(self, websocket: WebSocket):
+		"""Realiza a conexão de um novo cliente
+
+		Keyword arguments:
+		websocket -- objeto websocket relacionado ao novo cliente
+		"""
 		await websocket.accept()
 		self.active_connections.append(websocket)
 
 	def disconnect(self, websocket: WebSocket):
+		"""Realiza a desconexão de um cliente
+
+		Keyword arguments:
+		websocket -- objeto websocket relacionado a um cliente conectado
+		"""
 		self.active_connections.remove(websocket)
 
 	async def send_personal_message(self, message: str, websocket: WebSocket):
+		"""Envia mensagem a um cliente específico
+
+		Keyword arguments:
+		message -- mensagem a ser enviada ao cliente
+		websocket -- objeto websocket relacionado a um cliente conectado
+		"""
 		try:
 			await websocket.send_text(message)
 		except:
 			pass
 
 	async def broadcast(self, message: str):
+		"""Envia mensagem a todos os clientes conectados
+
+		Keyword arguments:
+		message -- mensagem a ser enviada aos clientes
+		"""
 		for connection in self.active_connections:
 			await connection.send_text(message)
 
+# Define uma instância do gerenciador de conexões
 manager = ConnectionManager()
 
 @app.websocket('/quote/realtime/{symbol}/ws')
 async def websocket_endpoint(websocket: WebSocket, symbol: str):
-	"""
+	"""Loop de processamento para atualização de cotações dos capitais próprios com
+	base em seu símbolo.
 	"""
 
+	# Realiza a conexão do cliente
 	await manager.connect(websocket)
 
-	host = 'bovespa-empresas-publisher'
-	port = '5556'
+	# Define o host e a porta em que o publisher ZMQ está publicando as cotações
+	host = config.get('quote_publisher_host')
+	port = config.get('quote_publisher_port')
 
-	# Creates a socket instance
+	# Cria uma instância subscriber de socket ZMQ
 	context = zmq.Context()
 	socket = context.socket(zmq.SUB)
 
-	# Connects to a bound socket
+	# Conecta ao publisher
 	socket.connect("tcp://{}:{}".format(host, port))
 
-	# Subscribes to all topics
+	# Subscreve ao tópico relacionado ao capital próprio específico, com base no símbolo
 	socket.subscribe('QUOTE_%s' % (symbol))
 
-	# Receives a string format message
+	# Loop de operação
+	# O loop é interrompido quando o app é finalizado
 	while AppStatus.should_exit is False:
 
 		try:
-			await asyncio.sleep(5)
+
+			# Espera assíncrona para execução de outras tarefas
+			await asyncio.sleep(config.get('quote_realtime_update_period'))
+
+			# Verificação da fila de mensagens em modo sem bloqueio
 			message = socket.recv(flags=zmq.NOBLOCK)
+
+			# Caso haja uma mensagem na fila, decodifica para o formato utf-8...
 			message = message.decode('utf-8')
+			# Remove a informação do tópico e mantém apenas a mensagem
 			message = message[message.index(' ')+1:]
+			
+			# Submete a mensagem ao cliente conectado
 			await manager.send_personal_message(message, websocket)
+
 		except zmq.Again as e:
+
+			# Caso não haja mensagens na fila, não faz nada, vai para a próxima iteração
 			pass
+
 		except WebSocketDisconnect:
+
+			# Caso haja desconexão do cliente, atualiza o estado do gerenciador
 			manager.disconnect(websocket)

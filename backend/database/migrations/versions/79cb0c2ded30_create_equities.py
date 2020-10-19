@@ -38,7 +38,7 @@ def upgrade():
 	# intraday não está disponível para outras empresas.
 
 	symbols = [
-		[config.get()['bovespa'], 'index'],
+		[config.get('bovespa'), 'index'],
 		['BRDT3.SAO', 'company'], # Petrobras Distribuidora S.A.
 		['ITUB3.SAO', 'company'], # Itaú Unibanco Holding S.A.
 		['VALE3.SAO', 'company'], # Vale S.A.
@@ -53,7 +53,7 @@ def upgrade():
 
 	equities = []
 	alpha = alphavantage.AlphaMultiKeys(
-		api_keys=config.get()['alphavantage_api_keys'],
+		api_keys=config.get('alphavantage_api_keys'),
 		tor=True
 	)
 

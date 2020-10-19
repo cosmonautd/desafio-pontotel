@@ -18,7 +18,7 @@ socket = context.socket(zmq.PUB)
 socket.bind('tcp://*:%s' % (PORT))
 
 alpha = alphavantage.AlphaMultiKeys(
-	api_keys=config.get()['alphavantage_api_keys'],
+	api_keys=config.get('alphavantage_api_keys'),
 	tor=True
 )
 
