@@ -199,7 +199,7 @@ export default {
 
 			if (Object.keys(this.equity_data).length !== 0) {
 				this.loading_data = true;
-				promise = this.waitAtLeast(600, promise);
+				promise = this.waitAtLeast(300, promise);
 			}
 
 			promise.then((response) => {
