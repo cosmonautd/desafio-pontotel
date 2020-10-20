@@ -42,6 +42,9 @@
 				</tr>
 			</tbody>
 		</table>
+		<div :style="{visibility: this.loading_data ? 'visible' : 'hidden'}">
+			<b-spinner label="Carregando..."></b-spinner>
+		</div>
 		<line-chart class="padding20" :chart-data="datacollection" :options="options"></line-chart>
 		<button class="round-corners" @click="get_data('realtime')">Real time</button>
 		<button class="round-corners" @click="get_data('daily')">Daily</button>
@@ -115,6 +118,7 @@ export default {
 			websocket: null,
 			period: 'realtime',
 			last_update: null,
+			loading_data: false,
 			options: {
 				responsive: true,
 				maintainAspectRatio: false,
@@ -164,6 +168,13 @@ export default {
 		}
 	},
 	methods: {
+		// https://gist.github.com/glafarge/5bb59d515da551785aff39557a4ab48c
+		waitAtLeast(time, promise) {
+			const timeoutPromise = new Promise((resolve) => {
+				setTimeout(resolve, time);
+			});
+			return Promise.all([promise, timeoutPromise]).then((values) => values[0]);
+		},
 		graph_data () {
 			if (this.equity_data === null) return [];
 			let labels = Object.keys(this.equity_data);
@@ -190,16 +201,22 @@ export default {
 		},
 		get_data (period) {
 
-			this.period = period
+			this.period = period;
 			let promise = null;
 
 			if (period !== 'realtime')
 				promise = this.axios.get(`http://localhost:8000/equity/${this.symbol}/${this.period}`);
 			else promise = this.axios.get(`http://localhost:8000/equity-realtime/${this.symbol}`);
 
+			if (Object.keys(this.equity_data).length !== 0) {
+				this.loading_data = true;
+				promise = this.waitAtLeast(600, promise);
+			}
+
 			promise.then((response) => {
-				this.equity_data = response.data.data
-				this.fill_data()
+				this.equity_data = response.data.data;
+				this.fill_data();
+				this.loading_data = false;
 			})
 		}
 	},
