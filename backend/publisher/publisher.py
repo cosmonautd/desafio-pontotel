@@ -22,11 +22,14 @@ alpha = alphavantage.AlphaMultiKeys(
 	tor=True
 )
 
+database = db.PostgreSQLDatabase('postgresql+psycopg2://postgres:PLACEHOLDER_PASSWORD@bovespa-empresas-database:5432/postgres')
+database.connect()
+
 equities = None
 while equities is None:
 	try:
-		with db.transaction() as session:
-			equities = db.list_equities(session)
+		with database.transaction() as session:
+			equities = database.list_equities(session)
 	except:
 		pass
 	finally:
@@ -56,8 +59,8 @@ while True:
 
 		data = alpha.get_quote(symbol=symbol)
 
-		with db.transaction() as session:
-			new_quote = db.create_quote(session, data)
+		with database.transaction() as session:
+			new_quote = database.create_quote(session, data)
 
 		topic = 'QUOTE_%s' % (symbol)
 		message = json.dumps(new_quote, cls=DateTimeEncoder)
@@ -73,5 +76,5 @@ while True:
 	finally:
 
 		__increment_loopindex__()
-		# time.sleep(16.4)
-		time.sleep(60)
+		time.sleep(16.4)
+		database.disconnect()

@@ -28,6 +28,17 @@ app = FastAPI(
     version='0.0.1',
 )
 
+database = db.PostgreSQLDatabase('postgresql+psycopg2://postgres:PLACEHOLDER_PASSWORD@bovespa-empresas-database:5432/postgres')
+
+@app.on_event("startup")
+async def startup():
+    database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    database.disconnect()
+
 # Configuração das origens permitidas
 # Temporariamente, apenas localhost porta 8080, que é o frontend teste
 origins = [
@@ -97,8 +108,8 @@ async def list_companies():
 	Obtém a lista de empresas cadastradas.
 	"""
 
-	with db.transaction() as session:
-		companies = db.list_companies(session)
+	with database.transaction() as session:
+		companies = database.list_companies(session)
 
 	return {'success': True, 'companies': companies}
 
@@ -118,8 +129,8 @@ async def get_company(
 	- **symbol**: Símbolo do patrimônio da empresa
 	"""
 
-	with db.transaction() as session:
-		company = db.get_company(session, symbol)
+	with database.transaction() as session:
+		company = database.get_company(session, symbol)
 
 	if company is None:
 		return JSONResponse(
@@ -355,8 +366,8 @@ async def equity_realtime(
 	```
 	"""
 
-	with db.transaction() as session:
-		data = db.list_quotes(session, symbol)
+	with database.transaction() as session:
+		data = database.list_quotes(session, symbol)
 		if len(data) == 0:
 			return JSONResponse(
 				status_code=404,
