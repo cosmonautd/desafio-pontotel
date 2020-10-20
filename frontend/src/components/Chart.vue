@@ -224,8 +224,8 @@ export default {
 			let promise = null;
 
 			if (period !== 'realtime')
-				promise = this.axios.get(`http://localhost:8000/equity/${this.symbol}/${this.period}`);
-			else promise = this.axios.get(`http://localhost:8000/equity-realtime/${this.symbol}`);
+				promise = this.axios.get(`${process.env.VUE_APP_SERVER_URL}/equity/${this.symbol}/${this.period}`);
+			else promise = this.axios.get(`${process.env.VUE_APP_SERVER_URL}/equity-realtime/${this.symbol}`);
 
 			if (Object.keys(this.equity_data).length !== 0) {
 				this.loading_data = true;
@@ -249,7 +249,8 @@ export default {
 		let component = this;
 
 		// console.log("Conectando ao websocket")
-		this.websocket = new WebSocket(`ws://localhost:8000/quote/realtime/${this.symbol}/ws`)
+		let url = 'w' + process.env.VUE_APP_SERVER_URL.substr(4);
+		this.websocket = new WebSocket(`${url}/quote/realtime/${this.symbol}/ws`)
 		this.websocket.onmessage = function(event) {
 			if (component.period === 'realtime') {
 				let data = JSON.parse(event.data);

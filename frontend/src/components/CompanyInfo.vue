@@ -44,7 +44,7 @@ export default {
 	},
 	methods: {
 		get_company (symbol) {
-			this.axios.get(`http://localhost:8000/company/${symbol}`)
+			this.axios.get(`${process.env.VUE_APP_SERVER_URL}/company/${symbol}`)
 			.then((response) => {
 				this.company = response.data.company;
 			})

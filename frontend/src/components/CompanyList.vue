@@ -35,7 +35,7 @@ export default {
 			this.$router.push({name: 'company_info', params: {symbol}});
 		},
 		get_companies () {
-			this.axios.get(`http://localhost:8000/companies`)
+			this.axios.get(`${process.env.VUE_APP_SERVER_URL}/companies`)
 			.then((response) => {
 				this.$store.commit('update_companies', response.data.companies)
 			})
