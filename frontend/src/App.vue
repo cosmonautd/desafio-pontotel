@@ -1,6 +1,5 @@
 <template>
-<div id="app" :class="this.$vssWidth >= 992 ? 'medium-container' : ''"
-	:key="generateUniqueKey()" >
+<div id="app" :class="this.$vssWidth >= 992 ? 'medium-container' : ''">
 	<sidebar-menu :menu="menu" :width="'200px'" :collapsed="false" :hideToggle="true" />
 	<div class="content">
 		<router-view/>
@@ -79,9 +78,6 @@ export default {
 			.then((response) => {
 				this.$store.commit('update_companies', response.data.companies)
 			})
-		},
-		generateUniqueKey() {
-			return Date.now().toString();
 		}
 	},
 	mounted() {
