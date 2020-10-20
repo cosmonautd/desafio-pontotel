@@ -33,8 +33,13 @@ export default {
 	},
 	computed: {
 		company_name () {
-			if (this.company === null) return '';
-			else return this.company.name;
+			if (this.$store.state.companies === null) return '';
+			else {
+				let company = this.$store.state.companies.filter(
+					c => c.symbol === this.$route.params.symbol
+				)[0];
+				return company.name;
+			}
 		}
 	},
 	methods: {

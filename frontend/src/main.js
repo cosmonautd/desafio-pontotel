@@ -14,11 +14,11 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
 	state: {
-		aaa: null
+		companies: null
 	},
 	mutations: {
-		update_aaa (state, aaa) {
-			state.aaa = aaa;
+		update_companies (state, companies) {
+			state.companies = companies;
 		},
 	},
 	plugins: [

@@ -25,14 +25,13 @@ export default {
 		SidebarMenu
 	},
 	data () {
-		return {
-			companies: [],
-		}
+		return {}
 	},
 	computed: {
 		companies_sidebar () {
-			if (this.companies.length === 0) return [];
-			else return this.companies.map(company => {
+			if (this.$store.state.companies === null
+				|| this.$store.state.companies.length === 0) return [];
+			else return this.$store.state.companies.map(company => {
 				let obj = {}
 				obj.href = `/companies/info/${company.symbol}`;
 				obj.title = company.symbol;
@@ -48,7 +47,7 @@ export default {
 				},
 				{
 					href: '/',
-					title: 'Bovespa',
+					title: 'Ibovespa',
 					icon: {
 						element: 'img',
 						attributes: { src: stocks_icon },
@@ -78,7 +77,7 @@ export default {
 		get_companies () {
 			this.axios.get(`http://localhost:8000/companies`)
 			.then((response) => {
-				this.companies = response.data.companies
+				this.$store.commit('update_companies', response.data.companies)
 			})
 		},
 		generateUniqueKey() {
@@ -191,5 +190,21 @@ html::-webkit-scrollbar {
 
 .content {
     padding-left: 150px;
+}
+
+.v-sidebar-menu .vsm--link_exact-active, .v-sidebar-menu .vsm--link_active {
+	color: #4285f4;
+}
+
+.v-sidebar-menu.vsm_expanded .vsm--item_open .vsm--link_level-1 {
+	background-color: transparent;
+}
+
+.v-sidebar-menu.vsm_expanded .vsm--item_open .vsm--link_level-1 {
+	color: #4285f4;
+}
+
+.v-sidebar-menu.vsm_expanded .vsm--item_open .vsm--link_level-1 .vsm--icon {
+	background-color: transparent;
 }
 </style>

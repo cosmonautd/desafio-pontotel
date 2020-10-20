@@ -5,10 +5,9 @@
 			<div>
 				<div class="align-left">
 					<p v-if="symbol==='BOVB11.SAO'">
-					The Bovespa Index, best known as Ibovespa is the benchmark index of 
-					about 70 stocks that are traded on the B3 (Brasil Bolsa Balcão), 
-					which account for the majority of trading and market capitalization 
-					in the Brazilian stock market. </p>
+					Índice Bovespa (Ibovespa) é o mais importante indicador do desempenho 
+					médio das cotações das ações negociadas na B3 - Brasil, Bolsa, Balcão.
+					É formado pelas ações com maior volume negociado nos últimos meses. </p>
 					<p v-else>
 						{{equity_description}}
 					</p>
@@ -22,22 +21,22 @@
 						R$ {{current_price}}
 					</td>
 					<td class="current-others">
-						Open <br> {{current_open}}
+						Abertura <br> {{current_open}}
 					</td>
 					<td class="current-others">
-						High <br> {{current_high}}
+						Máxima <br> {{current_high}}
 					</td>
 					<td class="current-others">
-						Low <br> {{current_low}}
+						Mínima <br> {{current_low}}
 					</td>
 					<td class="current-others">
-						Change <br> {{current_change}} ({{current_change_percent}})
+						Variação <br> {{current_change}} ({{current_change_percent}})
 					</td>
 					<td class="current-others">
-						Latest trading day <br> {{latest_trading_day}}
+						Última dia de negociação <br> {{latest_trading_day}}
 					</td>
 					<td class="right-round-corners current-others">
-						Last update <br> {{last_update_time}}
+						Última atualização <br> {{last_update_time}}
 					</td>
 				</tr>
 			</tbody>
@@ -46,10 +45,10 @@
 			<b-spinner label="Carregando..."></b-spinner>
 		</div>
 		<line-chart class="padding20" :chart-data="datacollection" :options="options"></line-chart>
-		<button class="round-corners" @click="get_data('realtime')">Real time</button>
-		<button class="round-corners" @click="get_data('daily')">Daily</button>
-		<button class="round-corners" @click="get_data('weekly')">Weekly</button>
-		<button class="round-corners" @click="get_data('monthly')">Monthly</button>
+		<button class="round-corners" @click="get_data('realtime')">Atual</button>
+		<button class="round-corners" @click="get_data('daily')">Diário</button>
+		<button class="round-corners" @click="get_data('weekly')">Semanal</button>
+		<button class="round-corners" @click="get_data('monthly')">Mensal</button>
 	</div>
 </div>
 </template>
@@ -125,38 +124,28 @@ export default {
 				layout: {
 					padding: 1
 				},
-				title: {
-					// fontSize: 26,
-					display: true,
-					// text: 'Total confirmed cases'
-				},
 				scales: {
 					xAxes: [{
 						ticks: {
-							// fontSize: 24
 						},
 						scaleLabel: {
 							display: false,
-							labelString: 'Date'
+							labelString: 'Data'
 						}
 					}],
 					yAxes: [{
 						type: 'linear',
 						scaleLabel: {
 							display: true,
-							labelString: 'Quote (R$)'
+							labelString: 'Cotação (R$)'
 						},
 						ticks: {
-							// fontSize: 24,
 							sampleSize: 6
 						}
 					}]
 				},
 				legend: {
 					position: 'top',
-					labels : {
-						fontSize: 18
-					},
 					display: false
 				},
 				elements: {

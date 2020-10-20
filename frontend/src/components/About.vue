@@ -4,7 +4,9 @@
 		<div class="vertical-spacing-1"></div>
 		<div class="vertical-spacing-top"/>
 		<div @click="landingPage" class="link">
-			<h1 class="bovespa-title">bovespa/empresas</h1>
+			<h1 class="bovespa-title" style="color: #444">
+				Bovespa/Empresas
+			</h1>
 		</div>
 		<p>
 			Acompanhe o Índice Bovespa e as 10 maiores empresas do Brasil em tempo real
