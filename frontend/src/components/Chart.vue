@@ -104,8 +104,12 @@ export default {
 			else return '';
 		},
 		last_update_time () {
-			if (this.last_update !== null)
-				return this.last_update['created_at'].substring(0,19);
+			if (this.last_update !== null) {
+				let date_str = this.last_update['created_at'].substring(0,19);
+				date_str = date_str.replace('T', ' ')
+				date_str = this.generatedFormattedDate(this.createDateAsUTC(new Date(date_str)))
+				return date_str;
+			}
 			else return '';
 		}
 	},
@@ -164,15 +168,38 @@ export default {
 			});
 			return Promise.all([promise, timeoutPromise]).then((values) => values[0]);
 		},
+		// https://stackoverflow.com/questions/439630/create-a-date-with-a-set-timezone-without-using-a-string-representation
+		createDateAsUTC(date) {
+			return new Date(Date.UTC(
+				date.getFullYear(), date.getMonth(), date.getDate(),
+				date.getHours(), date.getMinutes(), date.getSeconds()
+			));
+		},
+		zeros(n){
+			if(n <= 9)return "0" + n;
+			return n
+		},
+		generatedFormattedDate(date) {
+			return date.getFullYear() + "-" + this.zeros(date.getMonth() + 1) 
+				+ "-" + this.zeros(date.getDate()) + " " + this.zeros(date.getHours())
+				+ ":" + this.zeros(date.getMinutes()) + ":" + this.zeros(date.getSeconds())
+		},
 		graph_data () {
 			if (this.equity_data === null) return [];
 			let labels = Object.keys(this.equity_data);
 			labels = labels.sort();
 			labels = labels.slice(Math.max(labels.length - 40, 0));
 			let datapoints = labels.map(label => this.equity_data[label]['price']);
+			const last_label = labels[labels.length-1];
+			labels = labels.map(label => this.createDateAsUTC(new Date(label)))
+			labels = labels.map(date => this.generatedFormattedDate(date))
 			if (this.period === 'realtime') {
-				this.last_update = this.equity_data[labels[labels.length-1]]
+				this.last_update = this.equity_data[last_label]
 				labels = labels.map(label => label.substring(11,16));
+			} else if (this.period === 'daily' || this.period === 'weekly') {
+				labels = labels.map(label => label.substring(0,10));
+			} else if (this.period === 'monthly') {
+				labels = labels.map(label => label.substring(0,7));
 			}
 			return [labels, datapoints];
 		},
