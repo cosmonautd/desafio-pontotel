@@ -22,6 +22,7 @@ depends_on = None
 
 def upgrade():
 
+	# Definição da tabela de patrimônios
 	equities_table = op.create_table(
 		'equities',
 		sa.Column('symbol', sa.String, primary_key=True, index=True),
@@ -34,9 +35,6 @@ def upgrade():
 	)
 
 	# Fonte TOP 10 empresas brasileiras: https://www.meusdividendos.com/empresas/ranking
-	# IBM será usada como exemplo para atualização em tempo real, visto que a função
-	# intraday não está disponível para outras empresas.
-
 	symbols = [
 		[config.get('bovespa'), 'index'],
 		['BRDT3.SAO', 'company'], # Petrobras Distribuidora S.A.
@@ -51,6 +49,7 @@ def upgrade():
 		['ITSA3.SAO', 'company']  # Itaúsa - Investimentos Itaú S.A.
 	]
 
+	# Cria objeto AlphaMultiKeys para interação com Alpha Vantage
 	equities = []
 	alpha = alphavantage.AlphaMultiKeys(
 		api_keys=config.get('alphavantage_api_keys'),
@@ -58,7 +57,7 @@ def upgrade():
 	)
 
 	# Essa operação demorar até 1 minuto
-	# Pausas programadas são realizadas para respeitar os limites da API gratuita
+	# Pausas programadas são realizadas para respeitar alguns limites da API gratuita
 
 	print('Iniciando população do BD...')
 
@@ -77,6 +76,7 @@ def upgrade():
 		})
 		time.sleep(5)
 	
+	# Insere os patrimônios encontrados no banco de dados
 	op.bulk_insert(
 		equities_table,
 		equities

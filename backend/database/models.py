@@ -2,17 +2,17 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-## Configura modo declarativo usando classes para as definições das tabelas no BD
+# Define modo declarativo usando classes para as definições das tabelas no BD
 Base = declarative_base()
 
-## Definição do Usuário
+# Definição do usuário
 class User(Base):
 	__tablename__ = 'users'
 
 	username = Column(String, primary_key=True, index=True)
 	hashed_password = Column(String)
 
-## Definição de uma Equity
+# Definição do patrimônio
 class Equity(Base):
 	__tablename__ = 'equities'
 
@@ -26,7 +26,7 @@ class Equity(Base):
 
 	quotes = relationship('Quote')
 
-## Definição da Cotação
+# Definição da cotação
 class Quote(Base):
 	__tablename__ = 'quotes'
 

@@ -17,6 +17,7 @@ depends_on = None
 
 
 def upgrade():
+	# Definição da tabela de usuários
 	companies_table = op.create_table(
 		'users',
 		sa.Column('username', sa.String, primary_key=True, index=True),

@@ -10,16 +10,15 @@ def test_alpha_constructor():
 		api_key=config.get('alphavantage_api_keys')[0],
 		tor=True
 	)
-	assert alpha.api_key == config.get('alphavantage_api_keys')[0]
-	assert alpha.tor == True
+	assert alpha.api_key == config.get('alphavantage_api_keys')[0] # chave correta
+	assert alpha.tor == True # flag tor correta
 
 	alpha = alphavantage.Alpha(
 		api_key=config.get('alphavantage_api_keys')[-1],
 		tor=False
 	)
-	assert alpha.api_key == config.get('alphavantage_api_keys')[-1]
-	assert alpha.tor == False
-
+	assert alpha.api_key == config.get('alphavantage_api_keys')[-1] # chave correta
+	assert alpha.tor == False # flag tor correta
 
 def test_alphamultikeys_constructor():
 
@@ -27,11 +26,21 @@ def test_alphamultikeys_constructor():
 		api_keys=config.get('alphavantage_api_keys'),
 		tor=True
 	)
+	# compatibilidade entre número de chaves?
+	# compatibilidade de números de objetos criados?
+	# número de objetos definidos é compatível com o esperado?
+	# flag tor assinalada corretamente?
+
 	assert len(alpha.api_keys) == len(config.get('alphavantage_api_keys'))
 	assert len(alpha.alpha_workers) == len(config.get('alphavantage_api_keys'))
 	assert alpha.number_of_workers == len(config.get('alphavantage_api_keys'))
-	assert alpha.alpha_workers[0].tor == True
+	for alpha_worker in alpha.alpha_workers:
+		assert alpha_worker.tor == True
 
+	# compatibilidade entre número de chaves?
+	# compatibilidade de números de objetos criados?
+	# número de objetos definidos é compatível com o esperado?
+	# flag tor assinalada corretamente?
 	alpha = alphavantage.AlphaMultiKeys(
 		api_keys=config.get('alphavantage_api_keys'),
 		tor=False
@@ -39,8 +48,8 @@ def test_alphamultikeys_constructor():
 	assert len(alpha.api_keys) == len(config.get('alphavantage_api_keys'))
 	assert len(alpha.alpha_workers) == len(config.get('alphavantage_api_keys'))
 	assert alpha.number_of_workers == len(config.get('alphavantage_api_keys'))
-	assert alpha.alpha_workers[0].tor == False
-
+	for alpha_worker in alpha.alpha_workers:
+		assert alpha_worker.tor == False
 
 def test_remove_prefix_timeseries():
 
@@ -58,8 +67,7 @@ def test_remove_prefix_timeseries():
 	
 	data = alpha.__remove_prefix_timeseries__(data)
 
-	assert data == exp_data
-
+	assert data == exp_data # prefixos corretamente removidos?
 
 def test_transform_number():
 
@@ -77,8 +85,7 @@ def test_transform_number():
 
 	data = alpha.__transform_number__(data)
 
-	assert data == exp_data
-
+	assert data == exp_data # strings devidamente transformadas em números?
 
 def test_add_price_timeseries():
 
@@ -96,8 +103,7 @@ def test_add_price_timeseries():
 
 	data = alpha.__add_price_timeseries__(data)
 
-	assert data == exp_data
-
+	assert data == exp_data # preço devidamente adicionado?
 
 def test_fix_metadata_keys():
 
@@ -123,8 +129,7 @@ def test_fix_metadata_keys():
 
 	metadata = alpha.__fix_metadata_keys__(metadata)
 
-	assert metadata == exp_metadata
-
+	assert metadata == exp_metadata # chaves dos metadados devidamente normalizadas?
 
 def test_remove_prefix_search():
 
@@ -145,8 +150,7 @@ def test_remove_prefix_search():
 	
 	array = alpha.__remove_prefix_search__(array)
 
-	assert array == exp_array
-
+	assert array == exp_array # prefixos corretamente removidos?
 
 def test_remove_prefix_quote():
 
@@ -168,8 +172,7 @@ def test_remove_prefix_quote():
 	
 	data = alpha.__remove_prefix_quote__(data)
 
-	assert data == exp_data
-
+	assert data == exp_data # prefixos corretamente removidos?
 
 def test_cache():
 
@@ -184,8 +187,7 @@ def test_cache():
 
 	value2 = alpha.__get_from_cache__(key, 10)
 
-	assert value == value2
-
+	assert value == value2 # valor corretamente armazenado e recuperado do cache?
 
 
 dataitem_fields = ['open', 'high', 'low', 'close', 'open', 'price']
@@ -203,9 +205,9 @@ def get_time_series_template(function, symbol, datafield, refresh, interval='1mi
 		function, symbol, datafield, refresh, interval
 	)
 
-	assert all(item in metadata for item in metadata_fields)
+	assert all(item in metadata for item in metadata_fields) # metadados corretos?
 	for dataitem in data:
-		assert all(item in data[dataitem] for item in dataitem_fields)
+		assert all(item in data[dataitem] for item in dataitem_fields) # dados corretos?
 
 def test_get_time_series_daily():
 	get_time_series_template(
@@ -259,11 +261,11 @@ def test_search():
 
 	result = alpha.search('IBM')
 
-	assert result[0]['symbol'] == 'IBM'
-	assert result[0]['type'] == 'Equity'
-	assert result[0]['currency'] == 'USD'
+	assert result[0]['symbol'] == 'IBM' # símbolo correto?
+	assert result[0]['type'] == 'Equity' # tipo correto?
+	assert result[0]['currency'] == 'USD' # moeda correta?
 
-	for r in result:
+	for r in result: # todos os campos presentes?
 		assert all(item in r for item in search_fiels)
 
 
@@ -280,5 +282,5 @@ def test_quote():
 
 	quote = alpha.get_quote('IBM')
 
-	assert all(item in quote for item in quote_fields)
+	assert all(item in quote for item in quote_fields) # campos esperados presentes?
 	

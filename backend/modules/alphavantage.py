@@ -8,8 +8,15 @@ from torrequest import TorRequest
 
 ALPHAVANTAGE_URI = 'https://www.alphavantage.co/query'
 
-def get(params, tor=False):
-	"""
+def get(params, tor=True):
+	"""Realiza chamadas à API do Alpha Vantage através do TOR
+
+		Parâmetros:
+			params (dict): parâmetros a serem enviados à API do Alpha Vantage
+			tor (bool): flag indicando se o TOR deve ser usado
+
+		Retorno:
+			response_json (dict): corpo da resposta do Alpha Vantage
 	"""
 
 	if not tor:
@@ -32,19 +39,60 @@ def get(params, tor=False):
 
 
 class Alpha:
+	"""Uma classe para intermediar as operações com a API do Alpha Vantage.
+
+	Atributos
+	----------
+	api_key : str
+		chave de API do Alpha Vantage
+	tor : bool
+		flag indicando se o TOR deve ser usado nas interações com Alpha Vantage
+	cache : Redis
+		objeto Redis para fazer caching de respostas do Alpha Vantage
+
+	Métodos
+	-------
+	get_time_series_daily(symbol):
+		Obtém série temporal diária de cotações de um patrimônio.
+	get_time_series_daily_adjusted(symbol):
+		Obtém série temporal diária ajustada de cotações de um patrimônio.
+	get_time_series_weekly(symbol):
+		Obtém série temporal semanal de cotações de um patrimônio.
+	get_time_series_weekly_adjusted(symbol):
+		Obtém série temporal semanal ajustada de cotações de um patrimônio.
+	get_time_series_monthly(symbol):
+		Obtém série temporal mensal de cotações de um patrimônio.
+	get_time_series_monthly_adjusted(symbol):
+		Obtém série temporal mensal ajustada de cotações de um patrimônio.
+	get_time_series_intraday(symbol, interval='1min'):
+		Obtém série temporal intraday de cotações de um patrimônio.
+	search(keywords):
+		Realiza busca entre os patrimônios cadastrados no Alpha Vantage.
+	get_quote(symbol):
+		Obtém a cotação mais atualizada de um patrimônio no Alpha Vantage.
+	"""
 
 	def __init__(self, api_key, tor=False):
-		"""
+		"""Construtor da classe Alpha.
+
+			Parâmetros:
+				api_key (str): chave de API do Alpha Vantage
+				tor (bool): flag indicando se o TOR deve ser usado
 		"""
 		self.api_key = api_key
-		self.cache = redis.Redis('bovespa-empresas-redis')
 		self.tor = tor
+		self.cache = redis.Redis('bovespa-empresas-redis')
 	
 
 	def __remove_prefix_timeseries__(self, data):
-		"""
-		"""
+		"""Remove os prefixos numéricos dos dados do Alpha Vantage.
 
+			Parâmetros:
+				data (dict): dados retornados pelo Alpha Vantage
+
+			Retorno:
+				data (dict): dados com prefixos numéricos removidos
+		"""
 		for date in data:
 			data[date]['open'] = data[date].pop('1. open', 0)
 			data[date]['high'] = data[date].pop('2. high', 0)
@@ -56,9 +104,16 @@ class Alpha:
 
 
 	def __transform_number__(self, data):
-		""" Dever ser executado após remove prefix timeseries
-		"""
+		"""Converte dados do Alpha Vantage de strings numéricas para números.
 
+		Deve ser usado apenas depois da passagem por self.__remove_prefix_timeseries__()
+
+			Parâmetros:
+				data (dict): dados retornados pelo Alpha Vantage após remoção de prefixos
+
+			Retorno:
+				data (dict): dados com valores numéricos
+		"""
 		for date in data:
 			for variable in data[date]:
 				if 'volume' in variable:
@@ -70,9 +125,16 @@ class Alpha:
 	
 
 	def __add_price_timeseries__(self, data):
-		""" Após remove prefix timeseries
-		"""
+		"""Adiciona informação de preço às cotações das séries temporais.
 
+		Deve ser usado apenas depois da passagem por self.__remove_prefix_timeseries__()
+
+			Parâmetros:
+				data (dict): dados retornados pelo Alpha Vantage após remoção de prefixos
+
+			Retorno:
+				data (dict): dados com adição do campo de preço
+		"""
 		for date in data:
 			data[date]['price'] = data[date]['close']
 
@@ -80,9 +142,14 @@ class Alpha:
 	
 
 	def __fix_metadata_keys__(self, metadata):
-		"""
-		"""
+		"""Conserta os campos dos metadados retornados pelo Alpha Vantage.
 
+			Parâmetros:
+				metadata (dict): metadados retornados pelo Alpha Vantage
+
+			Retorno:
+				metadata (dict): metadados com nomes dos campos normalizados
+		"""
 		metadata['information'] = metadata.pop('1. Information', 0)
 		metadata['symbol'] = metadata.pop('2. Symbol', 0)
 		metadata['last_refreshed'] = metadata.pop('3. Last Refreshed', 0)
@@ -93,9 +160,14 @@ class Alpha:
 
 
 	def __remove_prefix_search__(self, array):
-		"""
-		"""
+		"""Remove os prefixos numéricos dos dados da busca do Alpha Vantage.
 
+			Parâmetros:
+				array (list): lista de resultados retornada pelo Alpha Vantage
+
+			Retorno:
+				array (list): lista de resultados com campos normalizados
+		"""
 		for data in array:
 			data['symbol'] = data.pop('1. symbol', 0)
 			data['name'] = data.pop('2. name', 0)
@@ -111,9 +183,14 @@ class Alpha:
 	
 
 	def __remove_prefix_quote__(self, data):
-		"""
-		"""
+		"""Remove os prefixos numéricos dos dados de cotação do Alpha Vantage.
 
+			Parâmetros:
+				data (dict): informação de cotação retornada pelo Alpha Vantage
+
+			Retorno:
+				data (dict): informação de cotação com campos normalizados
+		"""
 		data['symbol'] = data.pop('01. symbol', 0)
 		data['open'] = data.pop('02. open', 0)
 		data['high'] = data.pop('03. high', 0)
@@ -128,14 +205,35 @@ class Alpha:
 		return data
 	
 
-	def __get_from_cache__(self, key, refresh):
-		"""
-		"""
+	def __save_to_cache__(self, key, value):
+		"""Armazena um valor no cache redis.
 
+		O valor é armazenado junto a um timestamp para posterior verificação de sua idade.
+
+			Parâmetros:
+				key (str): chave do valor
+				value (?): valor a ser armazenado
+		"""
+		entry = json.dumps({'value': value, 'timestamp': time.time()})
+		self.cache.set(key, entry)
+	
+
+	def __get_from_cache__(self, key, refresh):
+		"""Obtém valor armazenado no cache redis.
+
+			Parâmetros:
+				key (str): chave do valor
+				refresh (int): idade máxima do valor em segundos; caso o valor seja mais
+					antigo que refresh, o retorno é None
+
+			Retorno:
+				value (?): valor armazenado no cache sob a chave informada ou None, caso
+					a chave não tenha sido encontrada ou o valor armazenado é mais antigo
+					que o definido pelo parâmetro refresh
+		"""
 		entry = self.cache.get(key)
 
-		if entry == None:
-			return None
+		if entry == None: return None
 		else:
 			entry = json.loads(entry)
 			timestamp = entry['timestamp']
@@ -145,18 +243,22 @@ class Alpha:
 				return entry['value']
 	
 
-	def __save_to_cache__(self, key, value):
-		"""
-		"""
+	def __get_time_series_generic__(self, function, symbol, datafield, refresh, interval='1min'):
+		"""Método auxiliar para requisições de séries temporais à API do Alpha Vantage.
 
-		entry = json.dumps({'value': value, 'timestamp': time.time()})
+			Parâmetros:
+				function (str): nome da operação a ser executada no Alpha Vantage
+				symbol (str): símbolo do patrimônio a ser buscado
+				datafield (str): nome do campo em que os dados retornados são armazenados
+					pela API do Alpha Vantage
+				refresh (int): idade máxima, em segundos, do valor da resposta em cache;
+					caso o valor seja mais antigo que refresh, uma nova requisição à
+					API do Alpha Vantage é realizada
+				interval (str): intervalo usado na operação TIME_SERIES_INTRADAY
 
-		self.cache.set(key, entry)
-	
-
-	def __get_time_series_generic__(self, function, symbol, datafield, refresh,
-		interval='1min'):
-		"""
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		params = {
@@ -200,7 +302,14 @@ class Alpha:
 
 
 	def get_time_series_daily(self, symbol):
-		"""
+		"""Obtém série temporal diária de cotações de um patrimônio.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		return self.__get_time_series_generic__(
@@ -212,7 +321,14 @@ class Alpha:
 
 
 	def get_time_series_daily_adjusted(self, symbol):
-		"""
+		"""Obtém série temporal diária ajustada de cotações de um patrimônio.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		return self.__get_time_series_generic__(
@@ -224,7 +340,14 @@ class Alpha:
 	
 
 	def get_time_series_weekly(self, symbol):
-		"""
+		"""Obtém série temporal semanal de cotações de um patrimônio.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		return self.__get_time_series_generic__(
@@ -236,7 +359,14 @@ class Alpha:
 	
 
 	def get_time_series_weekly_adjusted(self, symbol):
-		"""
+		"""Obtém série temporal semanal ajustada de cotações de um patrimônio.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		return self.__get_time_series_generic__(
@@ -248,7 +378,14 @@ class Alpha:
 	
 
 	def get_time_series_monthly(self, symbol):
-		"""
+		"""Obtém série temporal mensal de cotações de um patrimônio.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		return self.__get_time_series_generic__(
@@ -260,7 +397,14 @@ class Alpha:
 	
 
 	def get_time_series_monthly_adjusted(self, symbol):
-		"""
+		"""Obtém série temporal mensal ajustada de cotações de um patrimônio.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		return self.__get_time_series_generic__(
@@ -272,7 +416,15 @@ class Alpha:
 
 
 	def get_time_series_intraday(self, symbol, interval='1min'):
-		"""
+		"""Obtém série temporal intraday de cotações de um patrimônio.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+				interval (str): intervalo usado na operação
+
+			Retorno:
+				data (dict): dados da série temporal retornada pelo Alpha Vantage
+				metadata (dict): metadados da série temporal
 		"""
 
 		# Estranhamente, TIME_SERIES_INTRADAY não funciona com a Bovespa. Para
@@ -288,7 +440,13 @@ class Alpha:
 
 	
 	def search(self, keywords):
-		"""
+		"""Realiza busca entre os patrimônios cadastrados no Alpha Vantage.
+
+			Parâmetros:
+				keywords (str): chave de busca a ser utilizada
+
+			Retorno:
+				data (list): resultados da busca armazenados em uma lista
 		"""
 
 		params = {
@@ -306,7 +464,13 @@ class Alpha:
 	
 
 	def get_quote(self, symbol):
-		"""
+		"""Obtém a cotação mais atualizada de um patrimônio no Alpha Vantage.
+
+			Parâmetros:
+				symbol (str): símbolo do patrimônio a ser buscado
+
+			Retorno:
+				data (dict): as informações da cotação armazenadas em um dicionário
 		"""
 
 		params = {
@@ -324,79 +488,137 @@ class Alpha:
 
 
 class AlphaMultiKeys:
+	"""Uma classe para interagir com a API do Alpha Vantage usando múltiplas chaves.
+
+	Atributos
+	----------
+	api_keys : list
+		lista de chaves de API do Alpha Vantage
+	tor : bool
+		flag indicando se o TOR deve ser usado nas interações com Alpha Vantage
+	alpha_workers: list
+		lista contendo os múltiplos objetos Alpha que serão iterados
+	number_of_alpha_workers: int
+		quantidade de objetos Alpha utilizados nas interações
+	index: int
+		índice do próximo objeto Alpha a ser utilizado para requisição
+
+	Métodos
+	-------
+	get_time_series_daily(symbol):
+		Obtém série temporal diária de cotações de um patrimônio.
+	get_time_series_daily_adjusted(symbol):
+		Obtém série temporal diária ajustada de cotações de um patrimônio.
+	get_time_series_weekly(symbol):
+		Obtém série temporal semanal de cotações de um patrimônio.
+	get_time_series_weekly_adjusted(symbol):
+		Obtém série temporal semanal ajustada de cotações de um patrimônio.
+	get_time_series_monthly(symbol):
+		Obtém série temporal mensal de cotações de um patrimônio.
+	get_time_series_monthly_adjusted(symbol):
+		Obtém série temporal mensal ajustada de cotações de um patrimônio.
+	get_time_series_intraday(symbol, interval='1min'):
+		Obtém série temporal intraday de cotações de um patrimônio.
+	search(keywords):
+		Realiza busca entre os patrimônios cadastrados no Alpha Vantage.
+	get_quote(symbol):
+		Obtém a cotação mais atualizada de um patrimônio no Alpha Vantage.
+	"""
 
 	def __init__(self, api_keys, tor):
-		"""
+		"""Construtor da classe AlphaMultiKeys.
+
+			Parâmetros:
+				api_keys (list): lista de chaves de API do Alpha Vantage
+				tor (bool): flag indicando se o TOR deve ser usado
 		"""
 		self.api_keys = api_keys
-		self.alpha_workers = [Alpha(api_key=k, tor=tor) for k in self.api_keys]
+		self.tor = tor
+		self.alpha_workers = [Alpha(api_key=k, tor=self.tor) for k in self.api_keys]
 		self.number_of_workers = len(self.alpha_workers)
 		self.index = -1
 
 
 	def __increment_index__(self):
-		"""
-		"""
+		"""Incrementa o índice, selecionando o próximo objeto Alpha a ser usado."""
 		self.index = (self.index + 1) % self.number_of_workers
 
 	def get_time_series_daily(self, symbol):
-		"""
+		"""Executa o método get_time_series_daily() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_time_series_daily(symbol)
 
 
 	def get_time_series_daily_adjusted(self, symbol):
-		"""
+		"""Executa o método get_time_series_daily_adjusted() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_time_series_daily_adjusted(symbol)
 	
 
 	def get_time_series_weekly(self, symbol):
-		"""
+		"""Executa o método get_time_series_weekly() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_time_series_weekly(symbol)
 	
 
 	def get_time_series_weekly_adjusted(self, symbol):
-		"""
+		"""Executa o método get_time_series_weekly_adjusted() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_time_series_weekly_adjusted(symbol)
 	
 
 	def get_time_series_monthly(self, symbol):
-		"""
+		"""Executa o método get_time_series_monthly() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_time_series_monthly(symbol)
 	
 
 	def get_time_series_monthly_adjusted(self, symbol):
-		"""
+		"""Executa o método get_time_series_monthly_adjusted() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_time_series_monthly_adjusted(symbol)
 
 
 	def get_time_series_intraday(self, symbol, interval='1min'):
-		"""
+		"""Executa o método get_time_series_intraday() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_time_series_intraday(symbol, interval)
 
 	
 	def search(self, keywords):
-		"""
+		"""Executa o método search() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].search(keywords)
 	
 
 	def get_quote(self, symbol):
-		"""
+		"""Executa o método get_quote() do objeto Alpha.
+
+		Os parâmetros e retornos são os mesmos documentados na classe Alpha.
 		"""
 		self.__increment_index__()
 		return self.alpha_workers[self.index].get_quote(symbol)

@@ -17,6 +17,7 @@ depends_on = None
 
 
 def upgrade():
+	# Definição da tabela de cotações
 	quotes_table = op.create_table(
 		'quotes',
 		sa.Column('id', sa.Integer, primary_key=True),
