@@ -218,6 +218,9 @@ export default {
 				this.fill_data();
 				this.loading_data = false;
 			})
+		},
+		generateUniqueKey() {
+			return Date.now().toString();
 		}
 	},
 	mounted() {

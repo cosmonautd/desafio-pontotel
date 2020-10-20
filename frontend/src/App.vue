@@ -1,7 +1,10 @@
 <template>
-<div id="app" :class="this.$vssWidth >= 992 ? 'medium-container' : ''">
-	<router-view/>
-	<sidebar-menu :menu="menu" :collapsed="true" :hideToggle="true" />
+<div id="app" :class="this.$vssWidth >= 992 ? 'medium-container' : ''"
+	:key="generateUniqueKey()" >
+	<sidebar-menu :menu="menu" :width="'200px'" :collapsed="false" :hideToggle="true" />
+	<div class="content">
+		<router-view/>
+	</div>
 </div>
 </template>
 
@@ -11,6 +14,10 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import VueScreenSize from 'vue-screen-size'
 import { SidebarMenu } from 'vue-sidebar-menu'
+import stocks_icon from '@/assets/icons8-stocks-growth-48.png';
+import company_icon from '@/assets/icons8-company-48.png';
+import about_icon from '@/assets/icons8-about-48.png';
+import '@fortawesome/fontawesome-free/css/all.css'
 export default {
 	name: "App",
 	mixins: [VueScreenSize.VueScreenSizeMixin],
@@ -19,30 +26,68 @@ export default {
 	},
 	data () {
 		return {
-			menu: [
+			companies: [],
+		}
+	},
+	computed: {
+		companies_sidebar () {
+			if (this.companies.length === 0) return [];
+			else return this.companies.map(company => {
+				let obj = {}
+				obj.href = `/companies/info/${company.symbol}`;
+				obj.title = company.symbol;
+				return obj;
+			});
+		},
+		menu () {
+			return [
 				{
 					header: true,
-					title: 'Main Navigation',
+					title: '',
 					hiddenOnCollapse: true
 				},
 				{
 					href: '/',
 					title: 'Bovespa',
-					icon: 'fa fa-user'
+					icon: {
+						element: 'img',
+						attributes: { src: stocks_icon },
+					}
 				},
 				{
 					href: '/companies',
 					title: 'Empresas',
-					icon: 'fa fa-user'
+					icon: {
+						element: 'img',
+						attributes: { src: company_icon },
+					},
+					child: this.companies_sidebar
 				},
 				{
 					href: '/about',
 					title: 'Sobre',
-					icon: 'fa fa-chart-area'
+					icon: {
+						element: 'img',
+						attributes: { src: about_icon },
+					}
 				}
 			]
 		}
 	},
+	methods: {
+		get_companies () {
+			this.axios.get(`http://localhost:8000/companies`)
+			.then((response) => {
+				this.companies = response.data.companies
+			})
+		},
+		generateUniqueKey() {
+			return Date.now().toString();
+		}
+	},
+	mounted() {
+		this.get_companies()
+	}
 }
 </script>
 
@@ -142,5 +187,9 @@ html {
 
 html::-webkit-scrollbar {
     width: 0px; /* For Chrome, Safari, and Opera */
+}
+
+.content {
+    padding-left: 150px;
 }
 </style>

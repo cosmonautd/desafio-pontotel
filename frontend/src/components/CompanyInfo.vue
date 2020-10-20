@@ -1,5 +1,5 @@
 <template>
-<div id="company-info">
+<div id="company-info" :key="generateUniqueKey()">
 	<div class="vertical-spacing-1"></div>
 	<div class="vertical-spacing-top"/>
 	<b-container fluid class="bv-example-row">
@@ -28,23 +28,24 @@ export default {
 	},
 	data () {
 		return {
-			extra: null
+			company: null
 		}
 	},
 	computed: {
 		company_name () {
-			if (this.extra !== null && this.extra.company !== undefined)
-				return this.extra.company.name;
-			else return '';
+			if (this.company === null) return '';
+			else return this.company.name;
 		}
 	},
 	methods: {
 		get_company (symbol) {
 			this.axios.get(`http://localhost:8000/company/${symbol}`)
 			.then((response) => {
-				this.extra = {}
-				this.extra.company = response.data.company;
+				this.company = response.data.company;
 			})
+		},
+		generateUniqueKey() {
+			return Date.now().toString();
 		}
 	},
 	mounted () {
