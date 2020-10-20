@@ -250,7 +250,6 @@ export default {
 
 		// console.log("Conectando ao websocket")
 		let url = 'ws' + process.env.VUE_APP_SERVER_URL.substr(4);
-		console.log(url)
 		this.websocket = new WebSocket(`${url}/quote/realtime/${this.symbol}/ws`)
 		this.websocket.onmessage = function(event) {
 			if (component.period === 'realtime') {
