@@ -41,9 +41,8 @@ def shutdown():
     database.disconnect()
 
 # Configuração das origens permitidas
-# Temporariamente, apenas localhost porta 8080, que é o frontend teste
 origins = [
-    'http://localhost:8080'
+    '*'
 ]
 
 # Aplicação do CORS ao app
