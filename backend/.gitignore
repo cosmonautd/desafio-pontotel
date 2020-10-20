@@ -1,7 +1,8 @@
 # Python
-__pycache
+__pycache__
 .venv*
 *.pyc
+.pytest_cache
 
 # Configuração do projeto
 config.yaml
