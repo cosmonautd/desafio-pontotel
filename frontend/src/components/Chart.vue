@@ -212,9 +212,11 @@ export default {
 		// console.log("Conectando ao websocket")
 		this.websocket = new WebSocket(`ws://localhost:8000/quote/realtime/${this.symbol}/ws`)
 		this.websocket.onmessage = function(event) {
-			let data = JSON.parse(event.data);
-			component.equity_data[data.created_at] = data;
-			component.fill_data()
+			if (component.period === 'realtime') {
+				let data = JSON.parse(event.data);
+				component.equity_data[data.created_at] = data;
+				component.fill_data()
+			}
 		}
 		this.websocket.onopen = function() {
 			// console.log("Websocket conectado!")

@@ -12,3 +12,4 @@ argh
 watchdog
 pyzmq
 torrequest
+pytest

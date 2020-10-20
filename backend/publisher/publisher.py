@@ -73,4 +73,5 @@ while True:
 	finally:
 
 		__increment_loopindex__()
-		time.sleep(16.4)
+		# time.sleep(16.4)
+		time.sleep(60)

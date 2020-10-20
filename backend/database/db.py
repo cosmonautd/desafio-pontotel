@@ -81,10 +81,10 @@ def create_quote(session, quote):
 		low=float(quote['low']),
 		price=float(quote['price']),
 		volume=int(quote['volume']),
-		latest_trading_day=str(quote['latest trading day']),
-		previous_close=float(quote['previous close']),
+		latest_trading_day=str(quote['latest_trading_day']),
+		previous_close=float(quote['previous_close']),
 		change=float(quote['change']),
-		change_percent=float(quote['change percent'][:-1]),
+		change_percent=float(quote['change_percent'][:-1]),
 		created_at=datetime.datetime.now(datetime.timezone.utc),
 		equity_symbol=str(quote['symbol'])
 	)

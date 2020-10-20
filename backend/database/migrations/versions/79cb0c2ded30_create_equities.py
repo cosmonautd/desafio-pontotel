@@ -70,8 +70,8 @@ def upgrade():
 			'symbol': s,
 			'name': equity['name'],
 			'region': equity['region'],
-			'market_open': equity['marketOpen'],
-			'market_close': equity['marketClose'],
+			'market_open': equity['market_open'],
+			'market_close': equity['market_close'],
 			'currency': equity['currency'],
 			'type': type_
 		})

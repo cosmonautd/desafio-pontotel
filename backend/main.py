@@ -6,8 +6,9 @@ import signal
 # Imports relacionados ao fastapi e seu correto funcionamento
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Path
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Union
 from uvicorn.main import Server
 import websockets
 
@@ -60,6 +61,11 @@ class AppStatus:
 Server.handle_exit = AppStatus.handle_exit
 
 
+# Definição do modelo de resposta de erro
+class ErrorResponse(BaseModel):
+	success = False
+	message: str
+
 # Definição da rota base / e seu modelo de resposta
 class OnlineResponse(BaseModel):
 	online: bool
@@ -102,19 +108,29 @@ class CompanyResponse(BaseModel):
 	success: bool
 	company: Company
 
-@app.get('/company/{symbol}', response_model=CompanyResponse)
+@app.get('/company/{symbol}',
+response_model=Union[CompanyResponse, ErrorResponse],
+responses={200: {'model': CompanyResponse}, 404: {'model': ErrorResponse}})
 async def get_company(
-	symbol: str = Path(..., title='Símbolo do capital próprio da empresa')):
+	symbol: str = Path(..., title='Símbolo do patrimônio da empresa')):
 	"""Obtém informações acerca da empresa requisitada, identificada pelo seu símbolo.
 
-	- **symbol**: Símbolo do capital próprio da empresa
+	- **symbol**: Símbolo do patrimônio da empresa
 	"""
 
 	with db.transaction() as session:
 		company = db.get_company(session, symbol)
 
-	if company is None: return {'success': False}
-	return {'success': True, 'company': company}
+	if company is None:
+		return JSONResponse(
+			status_code=404,
+			content={'success': False, 'message': 'Empresa não encontrada'}
+		)
+	else:
+		return JSONResponse(
+			status_code=200,
+			content={'success': True, 'company': company}
+		)
 
 
 # Definição da rota /search/{keyword} e seu modelo de resposta
@@ -123,11 +139,11 @@ class SearchItemResponse(BaseModel):
 	name: str
 	type: str
 	region: str
-	marketOpen: str
-	marketClose: str
+	market_open: str
+	market_close: str
 	timezone: str
 	currency: str
-	matchScore: str
+	match_score: str
 
 class SearchResponse(BaseModel):
 	success: bool
@@ -176,14 +192,16 @@ class EquityResponse(BaseModel):
 	data: dict
 	metadata: MetadataResponse
 
-@app.get('/equity/{symbol}/{period}', response_model=EquityResponse)
+@app.get('/equity/{symbol}/{period}',
+response_model=Union[EquityResponse, ErrorResponse],
+responses={200: {'model': EquityResponse}, 404: {'model': ErrorResponse}})
 async def equity(
-	symbol: str = Path(..., title='Símbolo do capital próprio'),
+	symbol: str = Path(..., title='Símbolo do patrimônio'),
 	period: Period = Path(..., title='Regime temporal a ser adotado')):
-	"""Retorna informações de cotação de um capital próprio com base em seu símbolo em
+	"""Retorna informações de cotação de um patrimônio com base em seu símbolo em
 	um determinado regime temporal, que pode ser diário, semanal ou mensal.
 
-	- **symbol**: Símbolo do capital próprio
+	- **symbol**: Símbolo do patrimônio
 	- **period**: Regime temporal a ser adotado (daily, weekly ou monthly)
 
 	Um exemplo da variável data é:
@@ -222,6 +240,12 @@ async def equity(
 
 		data, metadata = alpha.get_time_series_daily(symbol=symbol)
 
+		if data is None or metadata is None:
+			return JSONResponse(
+				status_code=404,
+				content={'success': False, 'message': 'Símbolo não encontrado'}
+			)
+
 		return {
 			'success': True,
 			'period': 'daily',
@@ -232,6 +256,12 @@ async def equity(
 	elif period == Period. weekly:
 
 		data, metadata = alpha.get_time_series_weekly(symbol=symbol)
+
+		if data is None or metadata is None:
+			return JSONResponse(
+				status_code=404,
+				content={'success': False, 'message': 'Símbolo não encontrado'}
+			)
 
 		return {
 			'success': True,
@@ -244,17 +274,17 @@ async def equity(
 
 		data, metadata = alpha.get_time_series_monthly(symbol=symbol)
 
+		if data is None or metadata is None:
+			return JSONResponse(
+				status_code=404,
+				content={'success': False, 'message': 'Símbolo não encontrado'}
+			)
+
 		return {
 			'success': True,
 			'period': 'monthly',
 			'data': data,
 			'metadata': metadata
-		}
-	
-	else:
-
-		return {
-			'success': False
 		}
 
 
@@ -265,14 +295,16 @@ class EquityRealTimeResponse(BaseModel):
 	data: dict
 	metadata: dict
 
-@app.get('/equity-realtime/{symbol}', response_model=EquityRealTimeResponse)
+@app.get('/equity-realtime/{symbol}',
+response_model=Union[EquityRealTimeResponse, ErrorResponse],
+responses={200: {'model': EquityRealTimeResponse}, 404: {'model': ErrorResponse}})
 async def equity_realtime(
-	symbol: str = Path(..., title='Símbolo do capital próprio')):
-	"""Retorna as últimas informações de cotação de um capital próprio registradas no
+	symbol: str = Path(..., title='Símbolo do patrimônio')):
+	"""Retorna as últimas informações de cotação de um patrimônio registradas no
 	banco de dados com base em seu símbolo. Atualmente, a variável metadata contém um 
 	objeto vazio.
 
-	- **symbol**: Símbolo do capital próprio
+	- **symbol**: Símbolo do patrimônio
 
 	Um exemplo da variável data é:
 
@@ -325,6 +357,11 @@ async def equity_realtime(
 
 	with db.transaction() as session:
 		data = db.list_quotes(session, symbol)
+		if len(data) == 0:
+			return JSONResponse(
+				status_code=404,
+				content={'success': False, 'message': 'Símbolo não encontrado'}
+			)
 		data = data[-40:]
 		data = {d['created_at'].strftime('%Y-%m-%d %H:%M:%S') : d for d in data}
 
@@ -408,7 +445,7 @@ async def websocket_endpoint(websocket: WebSocket, symbol: str):
 	# Conecta ao publisher
 	socket.connect("tcp://{}:{}".format(host, port))
 
-	# Subscreve ao tópico relacionado ao capital próprio específico, com base no símbolo
+	# Subscreve ao tópico relacionado a um patrimônio específico, com base no símbolo
 	socket.subscribe('QUOTE_%s' % (symbol))
 
 	# Loop de operação
@@ -431,12 +468,10 @@ async def websocket_endpoint(websocket: WebSocket, symbol: str):
 			# Submete a mensagem ao cliente conectado
 			await manager.send_personal_message(message, websocket)
 
+		# Caso não haja mensagens na fila, não faz nada, vai para a próxima iteração
 		except zmq.Again as e:
-
-			# Caso não haja mensagens na fila, não faz nada, vai para a próxima iteração
 			pass
 
+		# Caso haja desconexão do cliente, atualiza o estado do gerenciador
 		except WebSocketDisconnect:
-
-			# Caso haja desconexão do cliente, atualiza o estado do gerenciador
 			manager.disconnect(websocket)

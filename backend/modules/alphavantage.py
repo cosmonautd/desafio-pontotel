@@ -56,7 +56,7 @@ class Alpha:
 
 
 	def __transform_number__(self, data):
-		"""
+		""" Dever ser executado após remove prefix timeseries
 		"""
 
 		for date in data:
@@ -70,7 +70,7 @@ class Alpha:
 	
 
 	def __add_price_timeseries__(self, data):
-		"""
+		""" Após remove prefix timeseries
 		"""
 
 		for date in data:
@@ -79,17 +79,17 @@ class Alpha:
 		return data
 	
 
-	def __fix_metadata_keys__(self, data):
+	def __fix_metadata_keys__(self, metadata):
 		"""
 		"""
 
-		data['information'] = data.pop('1. Information', 0)
-		data['symbol'] = data.pop('2. Symbol', 0)
-		data['last_refreshed'] = data.pop('3. Last Refreshed', 0)
-		data['output_size'] = data.pop('4. Output Size', 0)
-		data['timezone'] = data.pop('5. Time Zone', 0)
+		metadata['information'] = metadata.pop('1. Information', 0)
+		metadata['symbol'] = metadata.pop('2. Symbol', 0)
+		metadata['last_refreshed'] = metadata.pop('3. Last Refreshed', 0)
+		metadata['output_size'] = metadata.pop('4. Output Size', 0)
+		metadata['timezone'] = metadata.pop('5. Time Zone', 0)
 
-		return data
+		return metadata
 
 
 	def __remove_prefix_search__(self, array):
@@ -101,11 +101,11 @@ class Alpha:
 			data['name'] = data.pop('2. name', 0)
 			data['type'] = data.pop('3. type', 0)
 			data['region'] = data.pop('4. region', 0)
-			data['marketOpen'] = data.pop('5. marketOpen', 0)
-			data['marketClose'] = data.pop('6. marketClose', 0)
+			data['market_open'] = data.pop('5. marketOpen', 0)
+			data['market_close'] = data.pop('6. marketClose', 0)
 			data['timezone'] = data.pop('7. timezone', 0)
 			data['currency'] = data.pop('8. currency', 0)
-			data['matchScore'] = data.pop('9. matchScore', 0)
+			data['match_score'] = data.pop('9. matchScore', 0)
 
 		return array
 	
@@ -120,10 +120,10 @@ class Alpha:
 		data['low'] = data.pop('04. low', 0)
 		data['price'] = data.pop('05. price', 0)
 		data['volume'] = data.pop('06. volume', 0)
-		data['latest trading day'] = data.pop('07. latest trading day', 0)
-		data['previous close'] = data.pop('08. previous close', 0)
+		data['latest_trading_day'] = data.pop('07. latest trading day', 0)
+		data['previous_close'] = data.pop('08. previous close', 0)
 		data['change'] = data.pop('09. change', 0)
-		data['change percent'] = data.pop('10. change percent', 0)
+		data['change_percent'] = data.pop('10. change percent', 0)
 
 		return data
 	
