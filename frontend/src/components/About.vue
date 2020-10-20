@@ -5,7 +5,7 @@
 		<div class="vertical-spacing-top"/>
 		<div @click="landingPage" class="link">
 			<h1 class="bovespa-title" style="color: #444">
-				Bovespa/Empresas
+				Ibovespa/Empresas
 			</h1>
 		</div>
 		<p>
