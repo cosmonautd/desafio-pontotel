@@ -28,12 +28,13 @@ app = FastAPI(
     version='0.0.1',
 )
 
+# Configuração do banco de dados
 database = db.PostgreSQLDatabase(config.get('postgresql_database_uri'))
 
+# Definição das ações de inicialização e término do app
 @app.on_event("startup")
 def startup():
     database.connect()
-
 
 @app.on_event("shutdown")
 def shutdown():
@@ -61,6 +62,7 @@ alpha = alphavantage.AlphaMultiKeys(
 # Utilizado para interromper o loop dos websockets quando o app é finalizado
 original_handler = Server.handle_exit
 
+# Define classe AppStatus
 class AppStatus:
     should_exit = False
 
@@ -69,6 +71,7 @@ class AppStatus:
         AppStatus.should_exit = True
         original_handler(*args, **kwargs)
 
+# Substitui o handler de saída do uvicorn com função que atualiza a flag should_exit.
 Server.handle_exit = AppStatus.handle_exit
 
 

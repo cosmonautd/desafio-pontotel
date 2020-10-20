@@ -5,14 +5,12 @@ from fastapi.testclient import TestClient
 
 from main import app
 
-client = TestClient(app)
-
-
 
 def test_online():
-	response = client.get('/')
-	assert response.status_code == 200
-	assert response.json() == {'online': True}
+	with TestClient(app) as client:
+		response = client.get('/')
+		assert response.status_code == 200
+		assert response.json() == {'online': True}
 
 
 
@@ -21,47 +19,52 @@ company_fields = [
 ]
 
 def test_list_companies():
-	response = client.get('/companies')
-	rbody = response.json()
-	assert response.status_code == 200
-	assert rbody['success'] == True
-	for company in rbody['companies']:
-		assert all(item in company.keys() for item in company_fields)
+	with TestClient(app) as client:
+		response = client.get('/companies')
+		rbody = response.json()
+		assert response.status_code == 200
+		assert rbody['success'] == True
+		for company in rbody['companies']:
+			assert all(item in company.keys() for item in company_fields)
 
 
 
 def test_get_company_success():
-	response = client.get('/company/BRDT3.SAO')
-	rbody = response.json()
-	assert response.status_code == 200
-	assert rbody['success'] == True
-	assert all(item in rbody['company'].keys() for item in company_fields)
+	with TestClient(app) as client:
+		response = client.get('/company/BRDT3.SAO')
+		rbody = response.json()
+		assert response.status_code == 200
+		assert rbody['success'] == True
+		assert all(item in rbody['company'].keys() for item in company_fields)
 
 def test_get_company_failure():
-	response = client.get('/company/AAAAAA')
-	rbody = response.json()
-	assert response.status_code == 404
-	assert rbody['success'] == False
-	assert 'message' in rbody
-	assert 'company' not in rbody
+	with TestClient(app) as client:
+		response = client.get('/company/AAAAAA')
+		rbody = response.json()
+		assert response.status_code == 404
+		assert rbody['success'] == False
+		assert 'message' in rbody
+		assert 'company' not in rbody
 
 
 
 def test_search_success():
-	response = client.get('/search/B3')
-	rbody = response.json()
-	first_result = rbody['result'][0]
-	assert response.status_code == 200
-	assert rbody['success'] == True
-	assert first_result['symbol'] == 'B3SA3.SAO'
-	assert first_result['currency'] == 'BRL'
+	with TestClient(app) as client:
+		response = client.get('/search/B3')
+		rbody = response.json()
+		first_result = rbody['result'][0]
+		assert response.status_code == 200
+		assert rbody['success'] == True
+		assert first_result['symbol'] == 'B3SA3.SAO'
+		assert first_result['currency'] == 'BRL'
 
 def test_search_empty():
-	response = client.get('/search/B4')
-	rbody = response.json()
-	assert response.status_code == 200
-	assert rbody['success'] == True
-	assert len(rbody['result']) == 0
+	with TestClient(app) as client:
+		response = client.get('/search/B4')
+		rbody = response.json()
+		assert response.status_code == 200
+		assert rbody['success'] == True
+		assert len(rbody['result']) == 0
 
 
 
@@ -70,36 +73,39 @@ metadata_fields = ['information', 'symbol', 'last_refreshed', 'output_size', 'ti
 
 @pytest.mark.skip(reason="Essa é uma função auxiliar")
 def equity_template_success(symbol, period):
-	response = client.get('/equity/%s/%s' % (symbol, period))
-	rbody = response.json()
-	assert response.status_code == 200
-	assert rbody['success'] == True
-	assert rbody['period'] == period
-	assert all(item in rbody.keys() for item in ['data', 'metadata'])
-	assert all(item in rbody['metadata'] for item in metadata_fields)
-	for dataitem in rbody['data']:
-		assert all(item in rbody['data'][dataitem] for item in dataitem_fields)
+	with TestClient(app) as client:
+		response = client.get('/equity/%s/%s' % (symbol, period))
+		rbody = response.json()
+		assert response.status_code == 200
+		assert rbody['success'] == True
+		assert rbody['period'] == period
+		assert all(item in rbody.keys() for item in ['data', 'metadata'])
+		assert all(item in rbody['metadata'] for item in metadata_fields)
+		for dataitem in rbody['data']:
+			assert all(item in rbody['data'][dataitem] for item in dataitem_fields)
 
 @pytest.mark.skip(reason="Essa é uma função auxiliar")
 def equity_template_notfound(symbol, period):
-	response = client.get('/equity/%s/%s' % (symbol, period))
-	rbody = response.json()
-	assert response.status_code == 404
-	assert rbody['success'] == False
-	assert 'message' in rbody
-	assert 'data' not in rbody
-	assert 'metadata' not in rbody
+	with TestClient(app) as client:
+		response = client.get('/equity/%s/%s' % (symbol, period))
+		rbody = response.json()
+		assert response.status_code == 404
+		assert rbody['success'] == False
+		assert 'message' in rbody
+		assert 'data' not in rbody
+		assert 'metadata' not in rbody
 
 @pytest.mark.skip(reason="Essa é uma função auxiliar")
 def equity_template_invalid_period(symbol, period):
-	response = client.get('/equity/%s/%s' % (symbol, period))
-	rbody = response.json()
-	assert response.status_code == 422
-	assert 'data' not in rbody
-	assert 'metadata' not in rbody
-	assert 'detail' in rbody
-	assert rbody['detail'][0]['loc'][0] == 'path'
-	assert rbody['detail'][0]['loc'][1] == 'period'
+	with TestClient(app) as client:
+		response = client.get('/equity/%s/%s' % (symbol, period))
+		rbody = response.json()
+		assert response.status_code == 422
+		assert 'data' not in rbody
+		assert 'metadata' not in rbody
+		assert 'detail' in rbody
+		assert rbody['detail'][0]['loc'][0] == 'path'
+		assert rbody['detail'][0]['loc'][1] == 'period'
 
 def test_equity_daily():
 	equity_template_success('BRDT3.SAO', 'daily')
@@ -123,23 +129,25 @@ realtime_dataitem_fields = ['price', 'high', 'latest_trading_day', 'previous_clo
 
 @pytest.mark.skip(reason="Essa é uma função auxiliar")
 def equity_realtime_template_success(symbol):
-	response = client.get('/equity-realtime/%s' % (symbol))
-	rbody = response.json()
-	assert response.status_code == 200
-	assert rbody['success'] == True
-	assert all(item in rbody.keys() for item in ['data', 'metadata'])
-	for dataitem in rbody['data']:
-		assert all(item in rbody['data'][dataitem] for item in realtime_dataitem_fields)
+	with TestClient(app) as client:
+		response = client.get('/equity-realtime/%s' % (symbol))
+		rbody = response.json()
+		assert response.status_code == 200
+		assert rbody['success'] == True
+		assert all(item in rbody.keys() for item in ['data', 'metadata'])
+		for dataitem in rbody['data']:
+			assert all(item in rbody['data'][dataitem] for item in realtime_dataitem_fields)
 
 @pytest.mark.skip(reason="Essa é uma função auxiliar")
 def equity_realtime_template_notfound(symbol):
-	response = client.get('/equity-realtime/%s' % (symbol))
-	rbody = response.json()
-	assert response.status_code == 404
-	assert rbody['success'] == False
-	assert 'message' in rbody
-	assert 'data' not in rbody
-	assert 'metadata' not in rbody
+	with TestClient(app) as client:
+		response = client.get('/equity-realtime/%s' % (symbol))
+		rbody = response.json()
+		assert response.status_code == 404
+		assert rbody['success'] == False
+		assert 'message' in rbody
+		assert 'data' not in rbody
+		assert 'metadata' not in rbody
 
 def test_equity_realtime_success():
 	equity_realtime_template_success('BRDT3.SAO')
