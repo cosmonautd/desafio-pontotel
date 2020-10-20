@@ -31,12 +31,12 @@ app = FastAPI(
 database = db.PostgreSQLDatabase('postgresql+psycopg2://postgres:PLACEHOLDER_PASSWORD@bovespa-empresas-database:5432/postgres')
 
 @app.on_event("startup")
-async def startup():
+def startup():
     database.connect()
 
 
 @app.on_event("shutdown")
-async def shutdown():
+def shutdown():
     database.disconnect()
 
 # Configuração das origens permitidas
@@ -103,7 +103,7 @@ class CompaniesResponse(BaseModel):
 	companies: List[Company]
 
 @app.get('/companies', response_model=CompaniesResponse)
-async def list_companies():
+def list_companies():
 	"""
 	Obtém a lista de empresas cadastradas.
 	"""
@@ -122,7 +122,7 @@ class CompanyResponse(BaseModel):
 @app.get('/company/{symbol}',
 response_model=Union[CompanyResponse, ErrorResponse],
 responses={200: {'model': CompanyResponse}, 404: {'model': ErrorResponse}})
-async def get_company(
+def get_company(
 	symbol: str = Path(..., title='Símbolo do patrimônio da empresa')):
 	"""Obtém informações acerca da empresa requisitada, identificada pelo seu símbolo.
 
@@ -161,7 +161,7 @@ class SearchResponse(BaseModel):
 	result: List[SearchItemResponse]
 
 @app.get('/search/{keyword}', response_model=SearchResponse)
-async def search(
+def search(
 	keyword: str = Path(..., title='Chave de busca para a pesquisa')):
 	"""Realiza busca pelos capitais próprios registrados na API do Alpha Vantage.
 
@@ -206,7 +206,7 @@ class EquityResponse(BaseModel):
 @app.get('/equity/{symbol}/{period}',
 response_model=Union[EquityResponse, ErrorResponse],
 responses={200: {'model': EquityResponse}, 404: {'model': ErrorResponse}})
-async def equity(
+def equity(
 	symbol: str = Path(..., title='Símbolo do patrimônio'),
 	period: Period = Path(..., title='Regime temporal a ser adotado')):
 	"""Retorna informações de cotação de um patrimônio com base em seu símbolo em
@@ -309,7 +309,7 @@ class EquityRealTimeResponse(BaseModel):
 @app.get('/equity-realtime/{symbol}',
 response_model=Union[EquityRealTimeResponse, ErrorResponse],
 responses={200: {'model': EquityRealTimeResponse}, 404: {'model': ErrorResponse}})
-async def equity_realtime(
+def equity_realtime(
 	symbol: str = Path(..., title='Símbolo do patrimônio')):
 	"""Retorna as últimas informações de cotação de um patrimônio registradas no
 	banco de dados com base em seu símbolo. Atualmente, a variável metadata contém um 
