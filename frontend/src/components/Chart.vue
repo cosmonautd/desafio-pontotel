@@ -3,7 +3,7 @@
 	<div class="yay">
 		<b-row align-h="center">
 			<div>
-				<div class="align-left">
+				<div class="align-left padding-left-a-bit">
 					<p v-if="symbol==='BOVB11.SAO'">
 					Índice Bovespa (Ibovespa) é o mais importante indicador do desempenho 
 					médio das cotações das ações negociadas na B3 - Brasil, Bolsa, Balcão.
@@ -86,15 +86,18 @@ export default {
 			else return '';
 		},
 		current_change () {
-			if (this.last_update !== null)
-				return this.last_update['change'];
+			if (this.last_update !== null) {
+				let change = this.last_update['change'];
+				if (change < 0) return `-${Math.abs(change)}`;
+				else return `+${change}`;
+			}	
 			else return '';
 		},
 		current_change_percent () {
 			if (this.last_update !== null){
 				let change_percent = this.last_update['change_percent']
-				if (change_percent < 0) return `- ${Math.abs(change_percent)}%`;
-				else return `+ ${change_percent}%`;
+				if (change_percent < 0) return `-${Math.abs(change_percent)}%`;
+				else return `+${change_percent}%`;
 			}
 			else return '';
 		},
@@ -296,7 +299,9 @@ td {
 	height: 100%;
 	width: 95%;
 	margin-left: auto;
-	margin-right: auto
+	margin-right: auto;
+	margin-bottom: 1em;
+	margin-top: 1em;
 }
 .datatable {
 	margin-top:2em;
@@ -308,5 +313,8 @@ td {
 .current-others {
 	font-weight: bold;
 	font-size: medium;
+}
+.padding-left-a-bit {
+	padding-left: 4em;
 }
 </style>
