@@ -22,7 +22,7 @@ alpha = alphavantage.AlphaMultiKeys(
 	tor=True
 )
 
-database = db.PostgreSQLDatabase('postgresql+psycopg2://postgres:PLACEHOLDER_PASSWORD@bovespa-empresas-database:5432/postgres')
+database = db.PostgreSQLDatabase(config.get('postgresql_database_uri'))
 database.connect()
 
 equities = None

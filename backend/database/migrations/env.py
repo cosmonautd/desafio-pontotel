@@ -8,6 +8,9 @@ from alembic import context
 import sys
 import os
 
+sys.path.append('.')
+from modules import config
+
 sys.path.insert(0, os.getcwd())
 
 # this is the Alembic Config object, which provides
@@ -42,7 +45,8 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    # url = config.get_main_option("sqlalchemy.url")
+    url = config.get('postgresql_database_uri')
     context.configure(
         url=url,
         target_metadata=target_metadata,
