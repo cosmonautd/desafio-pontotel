@@ -54,8 +54,13 @@ docker-compose down
 - As informações em tempo real são atualizadas através de comunicação via websocket com o backend, que submete atualizações de cotação tão logo essas são recebidas a partir do publisher.
 - Vuex é usado para guardar informações úteis ao front e reduzir a necessidade de novas requisições. As empresas cadastradas, por exemplo, já são armazenadas.
 
-#### Iniciar o frontend (modo desenvolvedor)
+#### Instalar dependências
 A partir do diretório /frontend
+```
+npm install
+```
+
+#### Iniciar o frontend (modo desenvolvedor)
 ```
 npm run serve
 ```
