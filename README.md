@@ -5,7 +5,7 @@ Esse projeto é um desafio da PontoTel em seu proceso de seleção de devs.
 O desafio foi desenvolver um sistema para fornecer informações de cotação em tempo real do Ibovespa e das 10 maiores empresas brasileiras.
 
 - Um preview do sistema desenvolvido pode ser acessado aqui: https://davidborges.xyz/desafio-pontotel
-- A documentação da API pode ser acessada aqui: https://davidborges.xyz/ibovespa-empresas-backend/docs
+- A documentação da API pode ser acessada aqui: https://davidborges.xyz/ibovespa-empresas-backend/redoc
 
 ## Backend
 
