@@ -4,6 +4,9 @@
 Esse projeto é um desafio da PontoTel em seu proceso de seleção de devs.
 O desafio foi desenvolver um sistema para fornecer informações de cotação em tempo real do Ibovespa e das 10 maiores empresas brasileiras.
 
+- Um preview do sistema desenvolvido pode ser acessado aqui: https://davidborges.xyz/desafio-pontotel
+- A documentação da API pode ser acessada aqui: https://davidborges.xyz/ibovespa-empresas-backend/docs
+
 ## Backend
 
 - Implementei o backend usando [FastAPI](https://fastapi.tiangolo.com/) como framework web e [SQLAlchemy](https://www.sqlalchemy.org/) para interação com o banco de dados [PostreSQL](https://www.postgresql.org/).
@@ -62,8 +65,6 @@ npm run serve
 - Atualmente, a API do Alpha Vantage não atualiza os valores de cotação em tempo real. Percebi isso depois de um tempo, quando notei que todos os valores enviados pela API eram iguais e que só sofriam alteração ao final do dia. A função GLOBAL_QUOTE, por exemplo, que deveria ser em tempo real, demora bastante a ser atualizada. A função TIME_SERIES_INTRADAY também apresenta o mesmo problema.
 - Diversos símbolos que há alguns meses funcionavam na API do Alpha Vantage deixaram de funcionar. Por exemplo, li que o símbolo "^BVSP" era utilizado para obter cotações do Ibovespa, no entanto, atualmente o uso desse símbolo retorna erro. Para obter os valores do Ibovespa, tive que selecionar um outro símbolo de um patrimônio (BOVB11.SAO) que espelha o Ibovespa e, portanto, deve seguir a mesma cotação.
 - A API do Alpha Vantage não disponibiliza a função TIME_SERIES_INTRADAY para as 10 maiores empresas do Brasil. O retorno para essas empresas brasileiras geralmente é um erro. Essa mesma função, quando utilizada com um outro símbolo, por exemplo "IBM", retorna como esperado (infelizmente, ainda com valores desatualizados).
-
-...
 
 ## Passos do desafio
 
