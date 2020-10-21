@@ -5,4 +5,4 @@ __pycache__
 .pytest_cache
 
 # Configuração do projeto
-config.yaml
+# config.yaml

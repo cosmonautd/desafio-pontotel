@@ -1,0 +1,22 @@
+ibm: IBM
+bovespa: BOVB11.SAO
+
+postgresql_database_uri: 'postgresql+psycopg2://postgres:PLACEHOLDER_PASSWORD@bovespa-empresas-database:5432/postgres'
+
+quote_publisher_host: bovespa-empresas-publisher
+quote_publisher_port: 5556
+
+quote_realtime_update_period: 5
+
+alphavantage_api_keys:
+  - RNG2E0E3HN11GV87
+  - ZCX6S9HOPYA24EMP
+  - UPSSGS6CKP7RD5B4
+  - DRWV9PYG3KKRNK0B
+  - 23S4T2GO9EWXE3DM
+  - RMB82ZSXZQD963ET
+  - H6B1VB9B0VVF5TNU
+  - 7G627VIMGIT1I4N3
+  - YQXNSW9PH3N1RHT0
+  - A27QGY0D1WX0U7AK
+  - 44PZLHW9V6CBEOQG
